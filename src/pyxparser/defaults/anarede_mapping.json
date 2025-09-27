@@ -163,5 +163,170 @@
       }
     },
     "function": "Reading of AC buses."
+  },
+  "DLIN": {
+    "fields": {
+      "circuit": {
+        "column": {
+          "end": 17,
+          "start": 16
+        },
+        "default": "",
+        "description": "Identification number of the parallel AC circuit."
+      },
+      "controlled_bus": {
+        "column": {
+          "end": 64,
+          "start": 59
+        },
+        "default": "From Bus",
+        "description": "In the case of transformer type circuits with automatic tap variation, this field is for the number of the bus whose voltage magnitude should be controlled."
+      },
+      "emergency_capacity": {
+        "column": {
+          "end": 72,
+          "start": 69
+        },
+        "default": "Normal Capacity",
+        "description": "Circuit loading capacity under emergency conditions for flow monitoring purposes, in MVA."
+      },
+      "equipment_capacity": {
+        "column": {
+          "end": 78,
+          "start": 75
+        },
+        "default": "Normal Capacity",
+        "description": "Loading capacity of the equipment with the smallest loading capacity connected to the circuit."
+      },
+      "from_bus": {
+        "column": {
+          "end": 5,
+          "start": 1
+        },
+        "default": "",
+        "description": "Number of the bus at one end of the circuit as defined in the Number field of the DBAR Execution Code."
+      },
+      "from_bus_opening": {
+        "column": {
+          "end": 6,
+          "start": 6
+        },
+        "default": "L",
+        "description": "L - Connected.\nD - Disconnected"
+      },
+      "normal_capacity": {
+        "column": {
+          "end": 68,
+          "start": 65
+        },
+        "default": 9999,
+        "description": "Circuit loading capacity under normal conditions for flow monitoring purposes, in MVA."
+      },
+      "number_of_taps": {
+        "column": {
+          "end": 74,
+          "start": 73
+        },
+        "default": 33,
+        "description": "Number of positions of the variable tap transformer, including the minimum tap and maximum tap."
+      },
+      "operation": {
+        "column": {
+          "end": 8,
+          "start": 8
+        },
+        "default": "A",
+        "description": "A or 0 - Circuit data addition.\nE or 1 - Circuit data elimination.\nM or 2 - Circuit data modification."
+      },
+      "owner": {
+        "column": {
+          "end": 19,
+          "start": 19
+        },
+        "default": "F",
+        "description": "F if the circuit belongs to the area of the bus defined in the From Bus field.\nT if the circuit belongs to the area of the bus defined in the To Bus field."
+      },
+      "phase_shift": {
+        "column": {
+          "end": 58,
+          "start": 54
+        },
+        "default": 0.0,
+        "description": "Phase shift angle value, in degrees, for phase shifting transformers. The specified angular phase shift is applied relative to the angle of the bus defined in the From Bus field. Implicit decimal point between columns 56 and 57."
+      },
+      "reactance": {
+        "column": {
+          "end": 32,
+          "start": 27
+        },
+        "default": 0.0,
+        "description": "Circuit reactance value, in %. For transformers this value corresponds to the reactance value for the nominal tap. Implicit decimal point between columns 30 and 31."
+      },
+      "resistance": {
+        "column": {
+          "end": 26,
+          "start": 21
+        },
+        "default": 0.0,
+        "description": "Circuit resistance value, in %. For transformers this value corresponds to the resistance value for the nominal tap. Implicit decimal point between columns 24 and 25."
+      },
+      "state": {
+        "column": {
+          "end": 18,
+          "start": 18
+        },
+        "default": "L",
+        "description": "L if the circuit is in operation (connected).\nD if the circuit is out of operation (disconnected)."
+      },
+      "susceptance": {
+        "column": {
+          "end": 38,
+          "start": 33
+        },
+        "default": 0.0,
+        "description": "Total shunt susceptance value of the circuit, in Mvar. Implicit decimal point between columns 35 and 36."
+      },
+      "tap": {
+        "column": {
+          "end": 43,
+          "start": 39
+        },
+        "default": "",
+        "description": "Tap value referred to the bus defined in the From Bus field, in p.u., for fixed tap transformers or an estimate of this value for automatic tap changing transformers (LTC). Implicit decimal point between columns 40 and 41."
+      },
+      "tap_maximum": {
+        "column": {
+          "end": 53,
+          "start": 49
+        },
+        "default": "",
+        "description": "Maximum value that the tap can assume, in p.u., for automatic tap changing transformers. Implicit decimal point between columns 50 and 51."
+      },
+      "tap_minimum": {
+        "column": {
+          "end": 48,
+          "start": 44
+        },
+        "default": "",
+        "description": "Minimum value that the tap can assume, in p.u., for automatic tap changing transformers. Implicit decimal point between columns 45 and 46."
+      },
+      "to_bus": {
+        "column": {
+          "end": 15,
+          "start": 11
+        },
+        "default": "",
+        "description": "Number of the bus at the other end of the circuit as defined in the Number field of the DBAR Execution Code."
+      },
+      "to_bus_opening": {
+        "column": {
+          "end": 10,
+          "start": 10
+        },
+        "default": "L",
+        "description": "L - Connected.\nD - Disconnected"
+      }
+    },
+    "function": "Reading of AC circuits (lines & transformers)."
   }
 }

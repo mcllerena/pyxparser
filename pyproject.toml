@@ -1,0 +1,32 @@
+[project]
+name = "pyxparser"
+author = [
+    { name = "Marck Llerena", email = "marckcode@gmail.com" },
+]
+version = "0.1.0"
+description = "ANAREDE parser"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true

@@ -3,11 +3,14 @@ name = "pyxparser"
 author = [
     { name = "Marck Llerena", email = "marckcode@gmail.com" },
 ]
-version = "0.1.0"
+dynamic = ["version"]
 description = "ANAREDE parser"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[project.scripts]
+pyxparser = "pyxparser.cli:main"
 
 [dependency-groups]
 dev = [
@@ -17,6 +20,13 @@ dev = [
     "flake8",
     "mypy",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyxparser.__version__"}
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88

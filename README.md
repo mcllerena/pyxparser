@@ -48,15 +48,16 @@ See `src/pyxparser/defaults/anarede_mapping.json` for the default ANAREDE format
 | **DBAR** | AC Bus data | ✅ Supported |
 | **DLIN** | Transmission line data | ✅ Supported |
 | **DGER** | Generator data | 🔄 Planned |
-| **DCSC** | CSC data | 🔄 Planned |
-| **DCER*** | SVC data | 🔄 Planned |
-| **DELO*** | DC Link nominal data | 🔄 Planned |
-| **DCBA*** | DC Bus data | 🔄 Planned |
-| **DCLI*** | DC Line data | 🔄 Planned |
-| **DCNV*** | AC-DC converter data | 🔄 Planned |
-| **DCCV*** | AC-DC converter control data | 🔄 Planned |
+| **DCSC** | CSC* data | 🔄 Planned |
+| **DCER** | SVC* data | 🔄 Planned |
+| **DELO** | DC Link nominal data | 🔄 Planned |
+| **DCBA** | DC Bus data | 🔄 Planned |
+| **DCLI** | DC Line data | 🔄 Planned |
+| **DCNV** | AC-DC converter data | 🔄 Planned |
+| **DCCV** | AC-DC converter control data | 🔄 Planned |
 
 *CSC: Controllable Series Compensator
+
 *SVC: Static VAR Compensator
 
 ### Setup Development Environment

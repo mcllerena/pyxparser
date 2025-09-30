@@ -16,7 +16,7 @@ def run_parser(args: argparse.Namespace) -> None:
         args: CLI arguments namespace
     """
     # Validate input file exists
-    pwf_path = validate_input_file(args.pwf_file)
+    pwf_path = validate_input_file(args.input)
 
     try:
         logger.info(f"Starting to parse file: {pwf_path}")

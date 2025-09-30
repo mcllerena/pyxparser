@@ -43,6 +43,7 @@ class AnaredeParser:
             result: Dict[str, Any] = {
                 "DBAR": [],
                 "DLIN": [],
+                "DGER": [],
                 "metadata": {"file_path": str(file_path), "status": "parsed"},
             }
 
@@ -52,20 +53,62 @@ class AnaredeParser:
                 for line_num, line in enumerate(f, 1):
                     line = line.rstrip("\n\r")
 
-                    # Check for end marker
-                    if line.strip() == "99999":
+                    # Check for end of file marker
+                    if line.strip() == "FIM":
                         break
+
+                    # Check for end of section marker
+                    if line.strip() == "99999":
+                        current_section = None
+                        continue
 
                     # Check for section headers
                     if line.strip() == "DBAR":
                         current_section = "DBAR"
+                        logger.debug("Starting DBAR section")
                         continue
                     elif line.strip() == "DLIN":
                         current_section = "DLIN"
+                        logger.debug("Starting DLIN section")
+                        continue
+                    elif line.strip() == "DGER":
+                        current_section = "DGER"
+                        logger.debug("Starting DGER section")
                         continue
 
-                    # Skip empty lines
-                    if not line.strip():
+                    # Skip empty lines and comment lines (lines starting with parentheses)
+                    if not line.strip() or line.strip().startswith("("):
+                        continue
+
+                    # Check for unsupported section headers
+                    unsupported_sections = [
+                        "TITU",
+                        "DOPC",
+                        "QLIM",
+                        "DGLT",
+                        "DARE",
+                        "DGBT",
+                        "DGGB",
+                        "DTPF",
+                        "DCAR",
+                        "DCER",
+                        "DCSC",
+                        "DMFL",
+                        "DBSH",
+                        "DCTR",
+                        "DSHL",
+                        "DMFL",
+                        "DELO",
+                        "DCBA",
+                        "DCLI",
+                        "DCNV",
+                        "DCCV",
+                    ]
+                    if line.strip() in unsupported_sections:
+                        current_section = line.strip()  # Use actual section name
+                        logger.warning(
+                            f"Skipping section '{current_section}' (not supported)"
+                        )
                         continue
 
                     # Parse data lines based on current section
@@ -76,13 +119,23 @@ class AnaredeParser:
                         elif current_section == "DLIN":
                             record = self.parse_dlin_record(line)
                             result["DLIN"].append(record)
+                        elif current_section == "DGER":
+                            record = self.parse_dger_record(line)
+                            result["DGER"].append(record)
+                        elif current_section in unsupported_sections:
+                            continue
+                        elif current_section is None:
+                            continue
                     except Exception as e:
-                        logger.warning(f"Error parsing line {line_num}: {e}")
+                        logger.warning(
+                            f"Error parsing line {line_num} in section {current_section}: {e}"
+                        )
+                        logger.debug(f"Problematic line: {line}")
                         continue
 
             logger.success(f"Successfully parsed ANAREDE file: {file_path}")
             logger.info(
-                f"Parsed {len(result['DBAR'])} DBAR records and {len(result['DLIN'])} DLIN records"
+                f"Parsed {len(result['DBAR'])} DBAR records, {len(result['DLIN'])} DLIN records, and {len(result['DGER'])} DGER records"
             )
             return result
 
@@ -143,6 +196,46 @@ class AnaredeParser:
             raise ValueError(f"DLIN line too short: {line}")
 
         fields = self.field_mappings.get("DLIN", {}).get("fields", {})
+        record: Dict[str, Any] = {}
+
+        for field_name, field_config in fields.items():
+            try:
+                column_config = field_config.get("column", {})
+                start = column_config.get("start", 1)
+                end = column_config.get("end", 1)
+                default = field_config.get("default", "")
+
+                # Determine data type based on default value
+                data_type: Type[Union[str, int, float]]
+                if isinstance(default, int):
+                    data_type = int
+                elif isinstance(default, float):
+                    data_type = float
+                else:
+                    data_type = str
+
+                value = self._extract_field_value(line, start, end, data_type)
+                record[field_name] = value if value != "" else default
+
+            except Exception as e:
+                logger.debug(f"Error parsing field {field_name}: {e}")
+                record[field_name] = field_config.get("default", "")
+
+        return record
+
+    def parse_dger_record(self, line: str) -> Dict[str, Any]:
+        """Parse a DGER (generator) record.
+
+        Args:
+            line: Line containing DGER data
+
+        Returns:
+            Dictionary with parsed generator data
+        """
+        if len(line) < 10:
+            raise ValueError(f"DGER line too short: {line}")
+
+        fields = self.field_mappings.get("DGER", {}).get("fields", {})
         record: Dict[str, Any] = {}
 
         for field_name, field_config in fields.items():

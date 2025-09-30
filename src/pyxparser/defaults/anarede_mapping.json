@@ -164,6 +164,107 @@
     },
     "function": "Reading of AC buses."
   },
+  "DGER": {
+    "fields": {
+      "armature_service_factor": {
+        "column": {
+          "end": 44,
+          "start": 41
+        },
+        "default": "",
+        "description": "Armature current service factor, in %"
+      },
+      "load_angle": {
+        "column": {
+          "end": 54,
+          "start": 51
+        },
+        "default": "",
+        "description": "Maximum load angle (0.0 \u2013 85.0), in degrees."
+      },
+      "machine_reactance": {
+        "column": {
+          "end": 60,
+          "start": 56
+        },
+        "default": "",
+        "description": "Machine Reactance, in %."
+      },
+      "max_active_generation": {
+        "column": {
+          "end": 21,
+          "start": 16
+        },
+        "default": 99999.0,
+        "description": "Maximum active power generation limit value at the bus, in MW."
+      },
+      "min_active_generation": {
+        "column": {
+          "end": 14,
+          "start": 9
+        },
+        "default": 0.0,
+        "description": "Minimum active power generation limit value at the bus, in MW."
+      },
+      "nominal_apparent_power": {
+        "column": {
+          "end": 66,
+          "start": 62
+        },
+        "default": "",
+        "description": "Machine nominal apparent power, in MVA"
+      },
+      "nominal_power_factor": {
+        "column": {
+          "end": 39,
+          "start": 35
+        },
+        "default": "",
+        "description": "Machine Nominal Power Factor."
+      },
+      "number": {
+        "column": {
+          "end": 5,
+          "start": 1
+        },
+        "default": "",
+        "description": "Bus number, as defined in the Number field of the DBAR Execution Code."
+      },
+      "operation": {
+        "column": {
+          "end": 7,
+          "start": 7
+        },
+        "default": "A",
+        "description": "A or 0 - addition of active power generation limits and participation factors data\nM or 2 - modification of active power generation limits and participation factors data"
+      },
+      "participation_factor": {
+        "column": {
+          "end": 27,
+          "start": 23
+        },
+        "default": 0.0,
+        "description": "Generation bus participation factor value, in %. The active power interchange error of each area is distributed among the area generation buses, proportionally to each one's participation factor, observing the respective minimum and maximum active power generation limits."
+      },
+      "remote_control_participation_factor": {
+        "column": {
+          "end": 33,
+          "start": 29
+        },
+        "default": 100.0,
+        "description": "Generator participation factor in the amount of reactive power needed for remote bus voltage control in %."
+      },
+      "rotor_service_factor": {
+        "column": {
+          "end": 49,
+          "start": 46
+        },
+        "default": "",
+        "description": "Rotor current service factor, in %"
+      }
+    },
+    "function": "Reading of active power generation limits and participation factors."
+  },
   "DLIN": {
     "fields": {
       "circuit": {

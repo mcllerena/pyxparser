@@ -9,7 +9,7 @@ import sys
 from loguru import logger
 
 # Logger printing formats
-DEFAULT_FORMAT = "<level>{level}</level>: {message}"
+DEFAULT_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level>| <cyan>{name}:{line}{extra[padding]}</cyan> | {message}\n{exception}"
 
 
 class Formatter:  # noqa: D101
@@ -59,14 +59,17 @@ def setup_logging(
     logger.enable("pyxparser")
 
     level = os.environ.get("LOGURU_LEVEL", level)
+
+    # Always use the detailed format with timestamps and module info
+    formatter = Formatter()
     logger.add(
         sys.stderr,
         level=level,
         enqueue=False,
-        format=Formatter().format if level in ("DEBUG", "TRACE") else DEFAULT_FORMAT,
+        format=formatter.format,
     )
     if filename:
-        logger.add(filename, level=level, enqueue=True)
+        logger.add(filename, level=level, enqueue=True, format=formatter.format)
 
 
 if __name__ == "__main__":

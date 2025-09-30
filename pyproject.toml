@@ -1,13 +1,15 @@
 [project]
 name = "pyxparser"
-author = [
+authors = [
     { name = "Marck Llerena", email = "marckcode@gmail.com" },
 ]
 dynamic = ["version"]
 description = "ANAREDE parser"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "loguru>=0.7.0"
+]
 
 [project.scripts]
 pyxparser = "pyxparser.cli:main"

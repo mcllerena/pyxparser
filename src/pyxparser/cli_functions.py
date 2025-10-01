@@ -163,7 +163,8 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 name = str(bus.get("name", "")).strip()[:12]
                 tb = int(bus.get("type", 0)) if bus.get("type") else 0
                 area = int(bus.get("area", 1)) if bus.get("area") else 1
-                v0 = float(bus.get("voltage", 1.0)) if bus.get("voltage") else 1.0
+                v0_val = bus.get("voltage")
+                v0 = (float(v0_val) / 1000.0) if v0_val not in [None, ""] else 1.0
                 a0 = float(bus.get("angle", 0.0)) if bus.get("angle") else 0.0
                 pg0 = (
                     float(bus.get("active_generation", 0.0))
@@ -177,40 +178,24 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 )
 
                 # Get active power limits from DGER data
-                dger_data = dger_lookup.get(num, {})
-                pgm = (
-                    float(dger_data.get("max_active_generation", 99999.0))
-                    if dger_data.get("max_active_generation")
-                    else 99999.0
-                )
-                pgn = (
-                    float(dger_data.get("min_active_generation", -99999.0))
-                    if dger_data.get("min_active_generation")
-                    else -99999.0
-                )
+                dger_data = dger_lookup.get(num, dger_lookup.get(str(num), {}))
+                pgm_val = dger_data.get("max_active_generation")
+                pgn_val = dger_data.get("min_active_generation")
+                pgm = float(pgm_val) if pgm_val is not None else 9999.0
+                pgn = float(pgn_val) if pgn_val is not None else -9999.0
 
                 # Get reactive power limits from DBAR data
-                qgm = (
-                    float(bus.get("reactive_generation_max", 99999.0))
-                    if bus.get("reactive_generation_max")
-                    else 99999.0
-                )
-                qgn = (
-                    float(bus.get("reactive_generation_min", -99999.0))
-                    if bus.get("reactive_generation_min")
-                    else -99999.0
-                )
+                # Get reactive power limits from DBAR data
+                qgm_val = bus.get("max_reactive_generation")
+                qgn_val = bus.get("min_reactive_generation")
+                qgm = float(qgm_val) if qgm_val not in [None, ""] else 9999.0
+                qgn = float(qgn_val) if qgn_val not in [None, ""] else -9999.0
 
-                pl = (
-                    float(bus.get("active_load", 0.0))
-                    if bus.get("active_load")
-                    else 0.0
-                )
-                ql = (
-                    float(bus.get("reactive_load", 0.0))
-                    if bus.get("reactive_load")
-                    else 0.0
-                )
+                bus_pl = bus.get("active_load")
+                bus_ql = bus.get("reactive_load")
+                pl = float(bus_pl) if bus_pl not in [None, ""] else 0.0
+                ql = float(bus_ql) if bus_ql not in [None, ""] else 0.0
+
                 bsh = (
                     float(bus.get("capacitor_reactor", 0.0)) / 100.0
                     if bus.get("capacitor_reactor")
@@ -246,11 +231,10 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 to_bus = (
                     int(line_data.get("to_bus", 0)) if line_data.get("to_bus") else 0
                 )
-                tr = int(line_data.get("circuit", 1)) if line_data.get("circuit") else 1
                 r = (
-                    float(line_data.get("resistance", 0.0)) / 100.0
+                    float(line_data.get("resistance", 0)) / 100.0
                     if line_data.get("resistance")
-                    else 0.0
+                    else 0
                 )
                 x = (
                     float(line_data.get("reactance", 0.0)) / 100.0
@@ -262,7 +246,14 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                     if line_data.get("susceptance")
                     else 0.0
                 )
-                tap = float(line_data.get("tap", 1.0)) if line_data.get("tap") else 1.0
+                # Handle tap field according to your logic
+                tap_val = line_data.get("tap")
+                if tap_val is None or str(tap_val).isspace() or str(tap_val) == "":
+                    tap = 0.0
+                    tr = 0
+                else:
+                    tap = float(tap_val)
+                    tr = 1
                 tmx = (
                     float(line_data.get("tap_maximum", 0.0))
                     if line_data.get("tap_maximum")

@@ -6,8 +6,8 @@ QLIM L CREM L CTAP L NEWT L MOCT L MOCG L MOCF L RCVG L RMON L
 99999
 DBAR
 (No )OETGb(   nome   )Gl( V)( A)( Pg)( Qg)( Qn)( Qm)(Bc  )( Pl)( Ql)( Sh)Are(Vf)
-    1  2 A BAR-1 GER1  A1000  0.230.2 35.4-99999999.                       11000
-    2  1 A BAR-2 GER2  A1000-8.4 100.24.48-99999999.                       11000
+    1  2 A BAR-1 GER1  A1000  0.230.2 35.4 -350  350                       11000
+    2  1 A BAR-2 GER2  A1000-8.4 100.24.48 -500  500                       11000
     3    E BAR-3       A 989-7.1                                           11000
     4    E BAR-4       A 984-13.                                           11000
     5    E BAR-5 CAR1  A 966-12.                            55.  27.       11000
@@ -32,7 +32,7 @@ DLIN
 DGER
 (No ) O (Pmn ) (Pmx ) ( Fp) (FpR) (FPn) (Fa) (Fr) (Ag) ( Xq) (Sno)
     1       0.   650.    0.  100.
-    1       0.  1350.    0.  100.
+    2       0.  1350.    0.  100.
 99999
 DGLT
 (G (Vmn) (Vmx)

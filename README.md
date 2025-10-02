@@ -75,6 +75,28 @@ uv sync --dev
 uv run pre-commit install
 ```
 
+## CLI Usage
+
+Parse ANAREDE files from the command line:
+
+```bash
+pyxparser -i <input_path>/output.pwf -o <output_path>/output.dat -f dat -v
+```
+
+### Options
+
+- `-i, --input` - Input ANAREDE file path
+- `-o, --output` - Output file path
+- `-f, --format` - Output format (dat)
+- `-v, --verbose` - Enable verbose logging
+
+### Example
+
+```bash
+# Parse ANAREDE file and convert to DAT format
+pyxparser -i input.pwf -o output.dat -f dat -v
+```
+
 ## Contributing
 
 1. Fork the repository

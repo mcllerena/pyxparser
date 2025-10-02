@@ -280,6 +280,91 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
 
         dat_content.append(";\n")
 
+    # Process DCER data (Static Reactive Compensators)
+    if "DCER" in result and result["DCER"]:
+        dcer_data = result["DCER"]
+
+        dat_content.append("# Static reactive compensator (SVC) data")
+        dat_content.append(
+            "param: DCER:   Nbc    Kb       Incl      Qcn       Qcm  Ccer :="
+        )
+        dat_content.append(
+            "#                                      [MVAr]    [MVAr]        "
+        )
+
+        for idx, dcer in enumerate(dcer_data, 1):
+            if dcer.get("state", "L") == "L":  # Only connected devices
+                bus = int(dcer.get("bus", 0)) if dcer.get("bus") else 0
+                controlled_bus = (
+                    int(dcer.get("controlled_bus", 0))
+                    if dcer.get("controlled_bus")
+                    else 0
+                )
+                slope = float(dcer.get("slope", 0.0)) if dcer.get("slope") else 0.0
+                qmin = (
+                    float(dcer.get("min_reactive_generation", -100.0))
+                    if dcer.get("min_reactive_generation")
+                    else -100.0
+                )
+                qmax = (
+                    float(dcer.get("max_reactive_generation", 100.0))
+                    if dcer.get("max_reactive_generation")
+                    else 100.0
+                )
+
+                # Ccer appears to be control mode related - using 1 for default
+                ccer = 1
+
+                line_str = f"{idx:8d} {bus:9d} {controlled_bus:5d} {slope:10.7f} {qmin:9.2f} {qmax:9.2f} {ccer:4d}"
+                dat_content.append(line_str)
+
+        dat_content.append(";\n")
+
+    # Process DCSC data (Controllable Series Compensators)
+    if "DCSC" in result and result["DCSC"]:
+        dcsc_data = result["DCSC"]
+
+        dat_content.append("# Controlable series compensator (CSC) data")
+        dat_content.append(
+            "param: DCSC:            Xmin       Xmax  Ccsc      Xesp      Cnc :="
+        )
+        dat_content.append(
+            "#    k     i     j       [pu]       [pu]            [pu]    [MVA]"
+        )
+
+        for idx, dcsc in enumerate(dcsc_data, 1):
+            if dcsc.get("state", "L") == "L":  # Only connected devices
+                from_bus = int(dcsc.get("from_bus", 0)) if dcsc.get("from_bus") else 0
+                to_bus = int(dcsc.get("to_bus", 0)) if dcsc.get("to_bus") else 0
+
+                # Convert reactance from % to pu (divide by 100)
+                min_x = (
+                    float(dcsc.get("min_reactance", -9999.0)) / 100.0
+                    if dcsc.get("min_reactance")
+                    else -99.99
+                )
+                max_x = (
+                    float(dcsc.get("max_reactance", 9999.0)) / 100.0
+                    if dcsc.get("max_reactance")
+                    else 99.99
+                )
+                init_x = (
+                    float(dcsc.get("initial_reactance", 0.0)) / 100.0
+                    if dcsc.get("initial_reactance")
+                    else 0.0
+                )
+
+                # Ccsc appears to be control mode related - using 1 for default
+                ccsc = 1
+
+                # Cnc appears to be capacity - using 99999 as default
+                cnc = 99999.0
+
+                line_str = f"{idx:5d} {from_bus:5d} {to_bus:5d} {min_x:10.7f} {max_x:10.7f} {ccsc:4d} {init_x:10.7f} {cnc:8.2f}"
+                dat_content.append(line_str)
+
+        dat_content.append(";\n")
+
     return "\n".join(dat_content)
 
 

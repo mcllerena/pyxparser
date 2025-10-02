@@ -48,8 +48,8 @@ See `src/pyxparser/defaults/anarede_mapping.json` for the default ANAREDE format
 | **DBAR** | AC Bus data | ✅ Supported |
 | **DLIN** | Transmission line data | ✅ Supported |
 | **DGER** | Generator data | ✅ Supported  |
-| **DCSC** | CSC* data | 🔄 Planned |
-| **DCER** | SVC* data | 🔄 Planned |
+| **DCSC** | CSC* data | ✅ Supported |
+| **DCER** | SVC* data | ✅ Supported |
 | **DELO** | DC Link nominal data | 🔄 Planned |
 | **DCBA** | DC Bus data | 🔄 Planned |
 | **DCLI** | DC Line data | 🔄 Planned |

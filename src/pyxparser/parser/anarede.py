@@ -44,6 +44,8 @@ class AnaredeParser:
                 "DBAR": [],
                 "DLIN": [],
                 "DGER": [],
+                "DCSC": [],
+                "DCER": [],
                 "metadata": {"file_path": str(file_path), "status": "parsed"},
             }
 
@@ -75,6 +77,14 @@ class AnaredeParser:
                         current_section = "DGER"
                         logger.debug("Starting DGER section")
                         continue
+                    elif line.strip() == "DCSC":
+                        current_section = "DCSC"
+                        logger.debug("Starting DCSC section")
+                        continue
+                    elif line.strip() == "DCER":
+                        current_section = "DCER"
+                        logger.debug("Starting DCER section")
+                        continue
 
                     # Skip empty lines and comment lines (lines starting with parentheses)
                     if not line.strip() or line.strip().startswith("("):
@@ -91,8 +101,6 @@ class AnaredeParser:
                         "DGGB",
                         "DTPF",
                         "DCAR",
-                        "DCER",
-                        "DCSC",
                         "DMFL",
                         "DBSH",
                         "DCTR",
@@ -122,6 +130,12 @@ class AnaredeParser:
                         elif current_section == "DGER":
                             record = self.parse_dger_record(line)
                             result["DGER"].append(record)
+                        elif current_section == "DCSC":  # Add DCSC parsing
+                            record = self.parse_dcsc_record(line)
+                            result["DCSC"].append(record)
+                        elif current_section == "DCER":  # Add DCER parsing
+                            record = self.parse_dcer_record(line)
+                            result["DCER"].append(record)
                         elif current_section in unsupported_sections:
                             continue
                         elif current_section is None:
@@ -135,7 +149,7 @@ class AnaredeParser:
 
             logger.success(f"Successfully parsed ANAREDE file: {file_path}")
             logger.info(
-                f"Parsed {len(result['DBAR'])} DBAR records, {len(result['DLIN'])} DLIN records, and {len(result['DGER'])} DGER records"
+                f"Parsed {len(result['DBAR'])} DBAR records, {len(result['DLIN'])} DLIN records, {len(result['DGER'])} DGER records, {len(result['DCSC'])} DCSC records, and {len(result['DCER'])} DCER records"
             )
             return result
 
@@ -236,6 +250,86 @@ class AnaredeParser:
             raise ValueError(f"DGER line too short: {line}")
 
         fields = self.field_mappings.get("DGER", {}).get("fields", {})
+        record: Dict[str, Any] = {}
+
+        for field_name, field_config in fields.items():
+            try:
+                column_config = field_config.get("column", {})
+                start = column_config.get("start", 1)
+                end = column_config.get("end", 1)
+                default = field_config.get("default", "")
+
+                # Determine data type based on default value
+                data_type: Type[Union[str, int, float]]
+                if isinstance(default, int):
+                    data_type = int
+                elif isinstance(default, float):
+                    data_type = float
+                else:
+                    data_type = str
+
+                value = self._extract_field_value(line, start, end, data_type)
+                record[field_name] = value if value != "" else default
+
+            except Exception as e:
+                logger.debug(f"Error parsing field {field_name}: {e}")
+                record[field_name] = field_config.get("default", "")
+
+        return record
+
+    def parse_dcsc_record(self, line: str) -> Dict[str, Any]:
+        """Parse a DCSC (Controllable Series Compensator) record.
+
+        Args:
+            line: Line containing DCSC data
+
+        Returns:
+            Dictionary with parsed DCSC data
+        """
+        if len(line) < 10:
+            raise ValueError(f"DCSC line too short: {line}")
+
+        fields = self.field_mappings.get("DCSC", {}).get("fields", {})
+        record: Dict[str, Any] = {}
+
+        for field_name, field_config in fields.items():
+            try:
+                column_config = field_config.get("column", {})
+                start = column_config.get("start", 1)
+                end = column_config.get("end", 1)
+                default = field_config.get("default", "")
+
+                # Determine data type based on default value
+                data_type: Type[Union[str, int, float]]
+                if isinstance(default, int):
+                    data_type = int
+                elif isinstance(default, float):
+                    data_type = float
+                else:
+                    data_type = str
+
+                value = self._extract_field_value(line, start, end, data_type)
+                record[field_name] = value if value != "" else default
+
+            except Exception as e:
+                logger.debug(f"Error parsing field {field_name}: {e}")
+                record[field_name] = field_config.get("default", "")
+
+        return record
+
+    def parse_dcer_record(self, line: str) -> Dict[str, Any]:
+        """Parse a DCER (Static Reactive Compensator) record.
+
+        Args:
+            line: Line containing DCER data
+
+        Returns:
+            Dictionary with parsed DCER data
+        """
+        if len(line) < 10:
+            raise ValueError(f"DCER line too short: {line}")
+
+        fields = self.field_mappings.get("DCER", {}).get("fields", {})
         record: Dict[str, Any] = {}
 
         for field_name, field_config in fields.items():

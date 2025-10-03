@@ -52,6 +52,22 @@ class AnaredeParser:
                 "metadata": {"file_path": str(file_path), "status": "parsed"},
             }
 
+            # Try multiple encodings to handle different character sets
+            encodings = ["utf-8", "latin-1", "cp1252", "iso-8859-1"]
+            file_content = None
+
+            for encoding in encodings:
+                try:
+                    with open(file_path, "r", encoding=encoding) as f:
+                        file_content = f.readlines()
+                    logger.debug(f"Successfully opened file with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+
+            if file_content is None:
+                raise ValueError("Could not decode file with any supported encoding")
+
             all_sections = [
                 "TITU",
                 "DBAR",
@@ -167,12 +183,12 @@ class AnaredeParser:
                         continue
 
             if result["DBSH"]:
-                logger.debug("Integrating DBSH shunt values into DBAR data")
+                # logger.debug("Integrating DBSH shunt values into DBAR data")
                 self._integrate_dbsh_into_dbar(result)
 
             # Process DSHL data and integrate into DBAR
             if result["DSHL"]:
-                logger.debug("Integrating DSHL shunt values into DBAR data")
+                # logger.debug("Integrating DSHL shunt values into DBAR data")
                 self._integrate_dshl_into_dbar(result)
 
             if result["TITU"]:
@@ -613,10 +629,10 @@ class AnaredeParser:
             new_capacitor_reactor = current_capacitor_reactor + Sht_s
             result["DBAR"][dbar_index]["capacitor_reactor"] = new_capacitor_reactor
 
-            logger.debug(
-                f"BSH {s}: Added shunt {Sht_s} to bus {Extr_s} "
-                f"(DBAR {k_found}), total shunt val: {new_capacitor_reactor}"
-            )
+            # logger.debug(
+            #     f"BSH {s}: Added shunt {Sht_s} to bus {Extr_s} "
+            #     f"(DBAR {k_found}), total shunt val: {new_capacitor_reactor}"
+            # )
 
         logger.info(f"Integrated {nbsh} DBSH records into {nb} DBAR records")
 
@@ -694,10 +710,10 @@ class AnaredeParser:
                                 new_capacitor_reactor
                             )
 
-                            logger.debug(
-                                f"SHL {s}: Added FROM shunt {Shde_s} to bus {Deshl_s} "
-                                f"(DBAR index {k}), total: {new_capacitor_reactor}"
-                            )
+                            # logger.debug(
+                            #     f"SHL {s}: Added FROM shunt {Shde_s} to bus {Deshl_s} "
+                            #     f"(DBAR index {k}), total: {new_capacitor_reactor}"
+                            # )
                         break
 
                 if not bus_found:
@@ -734,16 +750,16 @@ class AnaredeParser:
                                 new_capacitor_reactor
                             )
 
-                            logger.debug(
-                                f"SHL {s}: Added TO shunt {Shpa_s} to bus {Pashl_s} "
-                                f"(DBAR {k}), total: {new_capacitor_reactor}"
-                            )
+                            # logger.debug(
+                            #     f"SHL {s}: Added TO shunt {Shpa_s} to bus {Pashl_s} "
+                            #     f"(DBAR {k}), total: {new_capacitor_reactor}"
+                            # )
                         break
 
                 if not bus_found:
                     logger.warning(f"* Error in bus TO {Pashl_s} of SHL {s}.")
 
-        logger.info(f"Integrated {nshl} DSHL records into DBAR data")
+        logger.info(f"Integrated {nshl} DSHL records into DBAR records")
 
     def _extract_field_value(
         self, line: str, start: int, end: int, data_type: Type[Union[str, int, float]]

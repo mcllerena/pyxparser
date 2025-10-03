@@ -46,10 +46,12 @@ See `src/pyxparser/defaults/anarede_mapping.json` for the default ANAREDE format
 | Record Type | Description | Status |
 |-------------|-------------|--------|
 | **DBAR** | AC Bus data | ✅ Supported |
-| **DLIN** | Transmission line data | ✅ Supported |
+| **DLIN** | AC Circuit data | ✅ Supported |
 | **DGER** | Generator data | ✅ Supported  |
 | **DCSC** | CSC* data | ✅ Supported |
-| **DCER** | SVC* data | ✅ Supported |
+| **DCER** | SVC** data | ✅ Supported |
+| **DBSH** | Bus Capacitor/reactor*** banks data | ✅ Supported |
+| **DSHL** | AC Circuit shunt data | ✅ Supported |
 | **DELO** | DC Link nominal data | 🔄 Planned |
 | **DCBA** | DC Bus data | 🔄 Planned |
 | **DCLI** | DC Line data | 🔄 Planned |
@@ -58,7 +60,9 @@ See `src/pyxparser/defaults/anarede_mapping.json` for the default ANAREDE format
 
 *CSC: Controllable Series Compensator
 
-*SVC: Static VAR Compensator
+**SVC: Static VAR Compensator
+
+***Capacitor/Reactor Banks: For groups or banks of individualized capacitors and/or reactors connected to the same bus, the settings for minimum and maximum voltage control range, controlled bus, and voltage control strategy must always be identical. Different settings for banks connected to the same bus would cause conflicts between voltage adjustment controls and are therefore not permitted. In this regard, individualized capacitor/reactor banks connected to a transmission line are considered to be connected to the bus corresponding to the line terminal where they are installed [1].
 
 ### Setup Development Environment
 
@@ -111,6 +115,6 @@ pyxparser -i input.pwf -o output.dat -f dat -v
 
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## References
 
-- ANAREDE (2015) documentation and format specifications
+[1] ANAREDE (2015). *Análise de Redes Elétricas - User Manual and Technical Documentation*. CEPEL (Centro de Pesquisas de Energia Elétrica).

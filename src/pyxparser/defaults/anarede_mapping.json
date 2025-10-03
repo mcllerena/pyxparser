@@ -164,6 +164,51 @@
     },
     "function": "Reading of AC buses."
   },
+  "DBSH": {
+    "fields": {
+      "control_mode": {
+        "column": {
+          "end": 18,
+          "start": 18
+        },
+        "default": "C",
+        "description": "Control mode: C-Continuous, D-Discrete, F-Fixed."
+      },
+      "from_bus": {
+        "column": {
+          "end": 5,
+          "start": 1
+        },
+        "default": "",
+        "description": "Bus identification number to which the shunt bank is connected."
+      },
+      "initial_reactive_injection": {
+        "column": {
+          "end": 41,
+          "start": 36
+        },
+        "default": 0.0,
+        "description": "Initial reactive power injection value in MVAr."
+      },
+      "terminal_bus": {
+        "column": {
+          "end": 51,
+          "start": 47
+        },
+        "default": "",
+        "description": "Terminal bus identification number."
+      },
+      "to_bus": {
+        "column": {
+          "end": 13,
+          "start": 9
+        },
+        "default": "",
+        "description": "Bus number of the other end for line banks. Not used for shunt banks."
+      }
+    },
+    "function": "Reading of individualized capacitor and/or reactor bank data connected to AC buses or transmission lines."
+  },
   "DCER": {
     "fields": {
       "bus": {
@@ -639,5 +684,18 @@
       }
     },
     "function": "Reading of AC circuits (lines & transformers)."
+  },
+  "TITU": {
+    "fields": {
+      "title_line": {
+        "column": {
+          "end": 80,
+          "start": 1
+        },
+        "default": "",
+        "description": "System title/description line"
+      }
+    },
+    "function": "System title and description information."
   }
 }

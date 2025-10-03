@@ -29,10 +29,32 @@ DLIN
     7         9 1     1.19 10.08  20.9                           200 200
     8         9 1      3.9   17.  35.8                           200 200
 99999
-DGER
-(No ) O (Pmn ) (Pmx ) ( Fp) (FpR) (FPn) (Fa) (Fr) (Ag) ( Xq) (Sno)
-    1       0.   650.    0.  100.
-    2       0.  1350.    0.  100.
+DBSH
+(NFr) O (NTo) Nc C (Vmn (Vmx Bctrl (Qini) T A (Extr
+    1            D 0800 1200     1  -180. C
+(G  O E (U) UOp (Sht ) M
+10        2   1  -180. S
+FBAN
+(NFr) O (NTo) Nc C (Vmn (Vmx Bctrl (Qini) T A (Extr
+    2            F 1000 1100     2  2223. C
+(G  O E (U) UOp (Sht ) M
+10        1   1   183. S
+20        5   4   263. S
+30        4   4   247. S
+FBAN
+(NFr) O (NTo) Nc C (Vmn (Vmx Bctrl (Qini) T A (Extr
+    3       4  3 D 1000 1100     3        C       3
+(G  O E (U) UOp (Sht ) M
+10        1   1  -110. S
+FBAN
+(NFr) O (NTo) Nc C (Vmn (Vmx Bctrl (Qini) T A (Extr
+    6            F 0950 1100     6  1400. C
+(G  O E (U) UOp (Sht ) M
+10        1   0  -136. S
+20        3   3   220. S
+30        3   3   180. S
+40        2   1   200. S
+FBAN
 99999
 DCSC
 (De ) O  (Pa )NcEPB      (Xmin)(Xmax)( Xv )C ( Vsp) (Ext)Nst(Cn)(Ce)(Cq)(1)(2)(3)(4)(5)(6)(7)(8)(9)(10
@@ -43,6 +65,11 @@ DCER
 (No ) O Gr Un (Kb ) (Incl) ( Qg)( Qn)( Qm) C E L
     4   10  1     4     1. 12.08-150. 250.   L
     5   90  1     5     2. -173.-150. 300. P L
+99999
+DGER
+(No ) O (Pmn ) (Pmx ) ( Fp) (FpR) (FPn) (Fa) (Fr) (Ag) ( Xq) (Sno)
+    1       0.   650.    0.  100.
+    2       0.  1350.    0.  100.
 99999
 DGLT
 (G (Vmn) (Vmx)

@@ -685,6 +685,75 @@
     },
     "function": "Reading of AC circuits (lines & transformers)."
   },
+  "DSHL": {
+    "fields": {
+      "circuit": {
+        "column": {
+          "end": 16,
+          "start": 15
+        },
+        "default": "",
+        "description": "Identification number of the parallel AC circuit."
+      },
+      "from_bus": {
+        "column": {
+          "end": 5,
+          "start": 1
+        },
+        "default": "",
+        "description": "Number of the bus at one end of the AC circuit as defined in the Number field of the DBAR Execution Code."
+      },
+      "operation": {
+        "column": {
+          "end": 7,
+          "start": 7
+        },
+        "default": "A",
+        "description": "A or 0 - addition of AC circuit shunt device data.\nE or 1 - elimination of AC circuit shunt device data.\nM or 2 - modification of AC circuit shunt device data."
+      },
+      "shunt_from": {
+        "column": {
+          "end": 23,
+          "start": 18
+        },
+        "default": 0.0,
+        "description": "Reactive power of shunts at the end defined in the From Bus field for nominal voltage (1.0 p.u.), in MVAr."
+      },
+      "shunt_to": {
+        "column": {
+          "end": 29,
+          "start": 24
+        },
+        "default": 0.0,
+        "description": "Reactive power of shunts at the end defined in the To Bus field for nominal voltage (1.0 p.u.), in MVAr."
+      },
+      "state_from": {
+        "column": {
+          "end": 32,
+          "start": 31
+        },
+        "default": "L",
+        "description": "L if the line shunt at this end is in operation (connected).\nD if the line shunt at this end is out of operation (disconnected)."
+      },
+      "state_to": {
+        "column": {
+          "end": 35,
+          "start": 34
+        },
+        "default": "L",
+        "description": "L if the line shunt at this end is in operation (connected).\nD if the line shunt at this end is out of operation (disconnected)."
+      },
+      "to_bus": {
+        "column": {
+          "end": 14,
+          "start": 10
+        },
+        "default": "",
+        "description": "Number of the bus at the other end of the circuit as defined in the Number field of the DBAR Execution Code."
+      }
+    },
+    "function": "Reading of AC circuit shunt device data. This code allows associating shunt devices to AC network circuits to facilitate fault simulation. These devices are automatically removed or inserted together with the associated circuit."
+  },
   "TITU": {
     "fields": {
       "title_line": {

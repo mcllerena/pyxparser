@@ -48,11 +48,54 @@ class AnaredeParser:
                 "DCSC": [],
                 "DCER": [],
                 "DBSH": [],
+                "DSHL": [],
                 "metadata": {"file_path": str(file_path), "status": "parsed"},
             }
 
+            all_sections = [
+                "TITU",
+                "DBAR",
+                "DLIN",
+                "DGER",
+                "DCSC",
+                "DCER",
+                "DBSH",
+                "DSHL",
+                "DOPC",
+                "QLIM",
+                "DGLT",
+                "DARE",
+                "DGBT",
+                "DGGB",
+                "DTPF",
+                "DCAR",
+                "DMFL",
+                "DCTR",
+                "DMFL",
+                "DELO",
+                "DCBA",
+                "DCLI",
+                "DCNV",
+                "DCCV",
+            ]
+
+            supported_sections = [
+                "TITU",
+                "DBAR",
+                "DLIN",
+                "DGER",
+                "DCSC",
+                "DCER",
+                "DBSH",
+                "DSHL",
+            ]
+            unsupported_sections = [
+                s for s in all_sections if s not in supported_sections
+            ]
+
             with open(file_path, "r", encoding="utf-8") as f:
                 current_section = None
+                titu_read = False
 
                 for line_num, line in enumerate(f, 1):
                     line = line.rstrip("\n\r")
@@ -67,81 +110,30 @@ class AnaredeParser:
                         continue
 
                     # Check for section headers
-                    if line.strip() == "TITU":
-                        current_section = "TITU"
-                        logger.debug("Starting TITU section")
-                        continue
-                    if line.strip() == "DBAR":
-                        current_section = "DBAR"
-                        logger.debug("Starting DBAR section")
-                        continue
-                    elif line.strip() == "DLIN":
-                        current_section = "DLIN"
-                        logger.debug("Starting DLIN section")
-                        continue
-                    elif line.strip() == "DGER":
-                        current_section = "DGER"
-                        logger.debug("Starting DGER section")
-                        continue
-                    elif line.strip() == "DCSC":
-                        current_section = "DCSC"
-                        logger.debug("Starting DCSC section")
-                        continue
-                    elif line.strip() == "DCER":
-                        current_section = "DCER"
-                        logger.debug("Starting DCER section")
-                        continue
-                    elif line.strip() == "DBSH":
-                        current_section = "DBSH"
-                        logger.debug("Starting DBSH section")
+                    if line.strip() in all_sections:
+                        current_section = line.strip()
+                        if current_section == "TITU":
+                            titu_read = False
+                            logger.debug("Starting TITU section")
+                        elif current_section in supported_sections:
+                            logger.debug(f"Starting {current_section} section")
+                        else:
+                            logger.warning(
+                                f"Skipping section '{current_section}' (not supported)"
+                            )
                         continue
 
                     # Skip empty lines and comment lines (lines starting with parentheses)
                     if not line.strip() or line.strip().startswith("("):
                         continue
 
-                    # Check for unsupported section headers
-                    unsupported_sections = [
-                        "DOPC",
-                        "QLIM",
-                        "DGLT",
-                        "DARE",
-                        "DGBT",
-                        "DGGB",
-                        "DTPF",
-                        "DCAR",
-                        "DMFL",
-                        "DCTR",
-                        "DSHL",
-                        "DMFL",
-                        "DELO",
-                        "DCBA",
-                        "DCLI",
-                        "DCNV",
-                        "DCCV",
-                    ]
-                    if line.strip() in unsupported_sections:
-                        current_section = line.strip()  # Use actual section name
-                        logger.warning(
-                            f"Skipping section '{current_section}' (not supported)"
-                        )
-                        continue
-
                     try:
                         if current_section == "TITU":
-                            # TITU section: only take the first non-empty line after "TITU"
-                            if (
-                                line.strip()
-                                and line.strip()
-                                not in unsupported_sections
-                                + ["DBAR", "DLIN", "DGER", "DCSC", "DCER", "DBSH"]
-                            ):
+                            if not titu_read and line.strip():
                                 result["TITU"].append(line.strip())
                                 logger.debug(f"Case Title: {line.strip()}")
+                                titu_read = True
                                 current_section = None
-                            else:
-                                current_section = None
-                                continue
                         elif current_section == "DBAR":
                             record = self.parse_dbar_record(line)
                             result["DBAR"].append(record)
@@ -158,9 +150,11 @@ class AnaredeParser:
                             record = self.parse_dcer_record(line)
                             result["DCER"].append(record)
                         elif current_section == "DBSH":
-                            # DBSH needs special handling - parse until FBAN, then continue
                             dbsh_data = self.parse_dbsh_section(f, line)
                             result["DBSH"].extend(dbsh_data)
+                        elif current_section == "DSHL":
+                            record = self.parse_dshl_record(line)
+                            result["DSHL"].append(record)
                         elif current_section in unsupported_sections:
                             continue
                         elif current_section is None:
@@ -176,6 +170,11 @@ class AnaredeParser:
                 logger.debug("Integrating DBSH shunt values into DBAR data")
                 self._integrate_dbsh_into_dbar(result)
 
+            # Process DSHL data and integrate into DBAR
+            if result["DSHL"]:
+                logger.debug("Integrating DSHL shunt values into DBAR data")
+                self._integrate_dshl_into_dbar(result)
+
             if result["TITU"]:
                 result["metadata"]["title"] = " ".join(result["TITU"])
 
@@ -183,7 +182,8 @@ class AnaredeParser:
             logger.info(
                 f"Parsed {len(result['DBAR'])} DBAR, {len(result['DLIN'])} DLIN , "
                 f"{len(result['DGER'])} DGER, {len(result['DCSC'])} DCSC, "
-                f"{len(result['DCER'])} DCER, and {len(result['DBSH'])} DBSH records"
+                f"{len(result['DCER'])} DCER, and {len(result['DBSH'])} DBSH, "
+                f"and {len(result['DSHL'])} DSHL records"
             )
             return result
 
@@ -513,6 +513,56 @@ class AnaredeParser:
 
         return dbsh_records
 
+    def parse_dshl_record(self, line: str) -> Dict[str, Any]:
+        """Parse DSHL (AC Circuit Shunt Devices) record."""
+        dshl_record: Dict[str, Any] = {}
+
+        # From bus (columns 1-5) - Deshl
+        from_bus_str = line[:5].strip()
+        dshl_record["from_bus"] = int(from_bus_str) if from_bus_str else 0
+
+        # Operation (column 7) - not used in original logic but in mapping
+        operation_str = line[6:7].strip()
+        dshl_record["operation"] = operation_str if operation_str else "A"
+
+        # To bus (columns 10-14) - Pashl
+        to_bus_str = line[9:14].strip()
+        dshl_record["to_bus"] = int(to_bus_str) if to_bus_str else 0
+
+        # Circuit (columns 15-16) - Ncshl
+        circuit_str = line[14:16].strip()
+        dshl_record["circuit"] = int(circuit_str) if circuit_str else 1
+
+        # Shunt from (columns 18-23) - Shde
+        shunt_from_str = line[17:23].strip()
+        if shunt_from_str and not shunt_from_str.isspace():
+            dshl_record["shunt_from"] = float(shunt_from_str)
+        else:
+            dshl_record["shunt_from"] = 0.0
+
+        # Shunt to (columns 24-29) - Shpa
+        shunt_to_str = line[23:29].strip()
+        if shunt_to_str and not shunt_to_str.isspace():
+            dshl_record["shunt_to"] = float(shunt_to_str)
+        else:
+            dshl_record["shunt_to"] = 0.0
+
+        # State from (columns 31-32) - EShde
+        state_from_str = line[30:32].strip()
+        if state_from_str and not state_from_str.isspace():
+            dshl_record["state_from"] = state_from_str
+        else:
+            dshl_record["state_from"] = "L"
+
+        # State to (columns 34-35) - EShpa
+        state_to_str = line[33:35].strip()
+        if state_to_str and not state_to_str.isspace():
+            dshl_record["state_to"] = state_to_str
+        else:
+            dshl_record["state_to"] = "L"
+
+        return dshl_record
+
     def _integrate_dbsh_into_dbar(self, result: Dict[str, Any]) -> None:
         """Integrate DBSH shunt values into DBAR bus data."""
         nbsh = len(result["DBSH"])  # Number of DBSH records
@@ -569,6 +619,131 @@ class AnaredeParser:
             )
 
         logger.info(f"Integrated {nbsh} DBSH records into {nb} DBAR records")
+
+    def _integrate_dshl_into_dbar(self, result: Dict[str, Any]) -> None:
+        """Integrate DSHL shunt values into DBAR bus data."""
+        nshl = len(result["DSHL"])  # Number of DSHL records
+        nr = len(result["DLIN"])  # Number of DLIN (line) records
+        nb = len(result["DBAR"])  # Number of DBAR (bus) records
+
+        # Process each DSHL record (s loop: for s in range(1, nshl + 1))
+        for s in range(1, nshl + 1):
+            dshl_record = result["DSHL"][s - 1]  # Convert to 0-based index
+
+            # Extract values from DSHL record
+            Deshl_s = dshl_record.get("from_bus")  # Deshl[s-1]
+            Pashl_s = dshl_record.get("to_bus")  # Pashl[s-1]
+            Shde_s = dshl_record.get("shunt_from", 0.0)  # Shde[s-1]
+            Shpa_s = dshl_record.get("shunt_to", 0.0)  # Shpa[s-1]
+            EShde_s = dshl_record.get("state_from", "L")  # EShde[s-1]
+            EShpa_s = dshl_record.get("state_to", "L")  # EShpa[s-1]
+
+            # Find matching line in DLIN (l loop: for l in range(1, nr + 1))
+            line_found = False
+            line_state = "D"  # Default to disconnected
+
+            for l in range(1, nr + 1):  # noqa: E741
+                dlin_record = result["DLIN"][l - 1]  # Convert to 0-based index
+                De_l = dlin_record.get("from_bus")  # De[l-1]
+                Pa_l = dlin_record.get("to_bus")  # Pa[l-1]
+                El_l = dlin_record.get("state", "L")  # El[l-1]
+
+                # Check if line matches: (De[l-1] == Deshl[s-1] and Pa[l-1] == Pashl[s-1]) or
+                #                       (Pa[l-1] == Deshl[s-1] and De[l-1] == Pashl[s-1])
+                if (
+                    De_l and int(De_l) == Deshl_s and Pa_l and int(Pa_l) == Pashl_s
+                ) or (Pa_l and int(Pa_l) == Deshl_s and De_l and int(De_l) == Pashl_s):
+                    line_found = True
+                    line_state = El_l
+                    break
+
+            if not line_found:
+                logger.warning(f"* SHL: A line doesn't exist {Deshl_s}-{Pashl_s}.")
+                continue
+
+            # Only process if line is connected: if El[l-1] == 'L'
+            if line_state == "L":
+                # Process FROM bus shunt
+                # Find bus in DBAR for FROM bus
+                bus_found = False
+                for k in range(1, nb + 1):
+                    dbar_record = result["DBAR"][k - 1]  # Convert to 0-based index
+                    Num_k = dbar_record.get("number")  # Num[k-1]
+
+                    if Num_k and int(Num_k) == Deshl_s:  # if Num[k-1] == Deshl[s-1]
+                        bus_found = True
+
+                        # Add shunt if state is connected: if EShde[s-1] == 'L'
+                        if EShde_s == "L":
+                            current_capacitor_reactor = result["DBAR"][k - 1].get(
+                                "capacitor_reactor", 0.0
+                            )
+
+                            # Handle string values and convert to float
+                            if isinstance(current_capacitor_reactor, str):
+                                try:
+                                    current_capacitor_reactor = float(
+                                        current_capacitor_reactor
+                                    )
+                                except ValueError:
+                                    current_capacitor_reactor = 0.0
+
+                            # Sh[k-1] = Sh[k-1] + Shde[s-1]
+                            new_capacitor_reactor = current_capacitor_reactor + Shde_s
+                            result["DBAR"][k - 1]["capacitor_reactor"] = (
+                                new_capacitor_reactor
+                            )
+
+                            logger.debug(
+                                f"SHL {s}: Added FROM shunt {Shde_s} to bus {Deshl_s} "
+                                f"(DBAR index {k}), total: {new_capacitor_reactor}"
+                            )
+                        break
+
+                if not bus_found:
+                    logger.warning(f"* Error in bus FROM {Deshl_s} of SHL {s}.")
+
+                # Process TO bus shunt
+                # Find bus in DBAR for TO bus
+                bus_found = False
+                for k in range(1, nb + 1):
+                    dbar_record = result["DBAR"][k - 1]  # Convert to 0-based index
+                    Num_k = dbar_record.get("number")  # Num[k-1]
+
+                    if Num_k and int(Num_k) == Pashl_s:  # if Num[k-1] == Pashl[s-1]
+                        bus_found = True
+
+                        # Add shunt if state is connected: if EShpa[s-1] == 'L'
+                        if EShpa_s == "L":
+                            current_capacitor_reactor = result["DBAR"][k - 1].get(
+                                "capacitor_reactor", 0.0
+                            )
+
+                            # Handle string values and convert to float
+                            if isinstance(current_capacitor_reactor, str):
+                                try:
+                                    current_capacitor_reactor = float(
+                                        current_capacitor_reactor
+                                    )
+                                except ValueError:
+                                    current_capacitor_reactor = 0.0
+
+                            # Sh[k-1] = Sh[k-1] + Shpa[s-1]
+                            new_capacitor_reactor = current_capacitor_reactor + Shpa_s
+                            result["DBAR"][k - 1]["capacitor_reactor"] = (
+                                new_capacitor_reactor
+                            )
+
+                            logger.debug(
+                                f"SHL {s}: Added TO shunt {Shpa_s} to bus {Pashl_s} "
+                                f"(DBAR {k}), total: {new_capacitor_reactor}"
+                            )
+                        break
+
+                if not bus_found:
+                    logger.warning(f"* Error in bus TO {Pashl_s} of SHL {s}.")
+
+        logger.info(f"Integrated {nshl} DSHL records into DBAR data")
 
     def _extract_field_value(
         self, line: str, start: int, end: int, data_type: Type[Union[str, int, float]]

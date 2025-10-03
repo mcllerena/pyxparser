@@ -40,20 +40,22 @@ def setup_logging(
     verbosity : int
         returns additional logging information.
     """
-    match verbosity:
-        case 0:
-            level = "SUCCESS"
-        case 1:
-            level = "INFO"
-        case 2:
-            level = "DEBUG"
-        case 3:
-            level = "TRACE"
-        case _:
-            msg = "Verbosity level not supported"
-            raise NotImplementedError(msg)
+    if verbosity > 0:
+        match verbosity:
+            case 1:
+                level = "INFO"
+            case 2:
+                level = "DEBUG"
+            case 3:
+                level = "TRACE"
+            case _:
+                level = "DEBUG"
 
-    from loguru import logger
+        formatter = Formatter()
+        format_str = formatter.format
+    else:
+        level = level  # Keep the passed level (usually INFO)
+        format_str = "{message}"  # type: ignore
 
     logger.remove()
     logger.enable("pyxparser")
@@ -66,7 +68,7 @@ def setup_logging(
         sys.stderr,
         level=level,
         enqueue=False,
-        format=formatter.format,
+        format=format_str,
     )
     if filename:
         logger.add(filename, level=level, enqueue=True, format=formatter.format)

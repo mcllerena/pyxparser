@@ -318,8 +318,6 @@ class AnaredeParser:
         artificial_buses = []
 
         # Get bus states from the parsed record
-        from_bus = record.get("from_bus")
-        to_bus = record.get("to_bus")
         line_state = record.get("state", "L")  # El (line state)
         from_bus_state = record.get(
             "from_bus_opening", "L"
@@ -340,9 +338,9 @@ class AnaredeParser:
             artificial_bus = self._create_artificial_bus(artificial_bus_num)
             artificial_buses.append(artificial_bus)
 
-            logger.debug(
-                f"Created artificial bus {artificial_bus_num} for disconnected FROM bus {from_bus}"
-            )
+            # logger.debug(
+            #     f"Created artificial bus {artificial_bus_num} for disconnected FROM bus {from_bus}"
+            # )
 
         # Case 2: Line is 'D', FROM bus is 'L', TO bus is 'D'
         elif line_state == "D" and from_bus_state == "L" and to_bus_state == "D":
@@ -357,9 +355,9 @@ class AnaredeParser:
             artificial_bus = self._create_artificial_bus(artificial_bus_num)
             artificial_buses.append(artificial_bus)
 
-            logger.debug(
-                f"Created artificial bus {artificial_bus_num} for disconnected TO bus {to_bus}"
-            )
+            # logger.debug(
+            #     f"Created artificial bus {artificial_bus_num} for disconnected TO bus {to_bus}"
+            # )
 
         return record, artificial_buses
 

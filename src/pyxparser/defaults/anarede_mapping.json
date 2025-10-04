@@ -429,14 +429,6 @@
         "default": "D",
         "description": "L if the bypass switch is closed (connected).\nD if the bypass switch is open (disconnected)."
       },
-      "circuit": {
-        "column": {
-          "end": 16,
-          "start": 15
-        },
-        "default": "",
-        "description": "Identification number of the parallel AC circuit."
-      },
       "control_mode": {
         "column": {
           "end": 44,
@@ -452,6 +444,14 @@
         },
         "default": 9999.0,
         "description": "CSC nominal capacity, in MVA."
+      },
+      "dcsc_circuit": {
+        "column": {
+          "end": 16,
+          "start": 15
+        },
+        "default": "",
+        "description": "Identification number of the parallel AC circuit."
       },
       "from_bus": {
         "column": {
@@ -647,14 +647,6 @@
   },
   "DLIN": {
     "fields": {
-      "circuit": {
-        "column": {
-          "end": 17,
-          "start": 16
-        },
-        "default": "",
-        "description": "Identification number of the parallel AC circuit."
-      },
       "controlled_bus": {
         "column": {
           "end": 64,
@@ -662,6 +654,14 @@
         },
         "default": "From Bus",
         "description": "In the case of transformer type circuits with automatic tap variation, this field is for the number of the bus whose voltage magnitude should be controlled."
+      },
+      "dlin_circuit": {
+        "column": {
+          "end": 17,
+          "start": 17
+        },
+        "default": "",
+        "description": "Identification number of the parallel AC circuit."
       },
       "emergency_capacity": {
         "column": {
@@ -812,7 +812,7 @@
   },
   "DSHL": {
     "fields": {
-      "circuit": {
+      "dshl_circuit": {
         "column": {
           "end": 16,
           "start": 15

@@ -225,10 +225,10 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
 
         dat_content.append("# AC circuits data (LTs and Transfos)")
         dat_content.append(
-            "param: DLIN:       Tr         R          X       Bshl     Tap     Tmx     Tmn      Psh        Cn     :="
+            "param: DLIN:       Ckt   Tr       R          X        Bshl     Tap     Tmx     Tmn      Psh        Cn     :="
         )
         dat_content.append(
-            "#    k     i     j          [pu]       [pu]       [pu]                           [grau]    [MVA]                     "
+            "#    k     i     j              [pu]       [pu]       [pu]                             [grau]    [MVA]                     "
         )
 
         dlin_idx = 1  # Counter for valid DLIN entries
@@ -244,6 +244,8 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 )
                 # Check if both FROM and TO buses are connected
             if from_bus in connected_buses and to_bus in connected_buses:
+                circuit = line_data.get("dlin_circuit", 1)
+                circuit_str = str(circuit) if circuit else "1"
                 r = (
                     float(line_data.get("resistance", 0)) / 100.0
                     if line_data.get("resistance")
@@ -288,9 +290,9 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                     else 99999.0
                 )
 
-                line_str = f"{dlin_idx:6d} {from_bus:5d} {to_bus:5d} {tr:2d} {r:10.7f} {x:10.7f} {bshl:10.7f} {tap:7.4f} {tmx:7.4f} {tmn:7.4f} {psh:8.3f} {cn:8.2f}"
+                line_str = f"{dlin_idx:6d} {from_bus:5d} {to_bus:5d} {circuit_str:>3s} {tr:4d} {r:10.7f} {x:10.7f} {bshl:10.7f} {tap:7.4f} {tmx:7.4f} {tmn:7.4f} {psh:8.3f} {cn:8.2f}"
                 dat_content.append(line_str)
-                dlin_idx += 1  # Only increment for valid entrie
+                dlin_idx += 1  # Only increment for valid entries
 
         dat_content.append(";\n")
 

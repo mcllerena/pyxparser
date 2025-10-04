@@ -8,6 +8,7 @@ from typing import Any, Dict
 from loguru import logger
 
 from .__version__ import __version__
+from .enums import INFINITY_VALUE, BASE_POWER_MVA, DEFAULT_VMAX, DEFAULT_VMIN
 
 
 def base_cli() -> argparse.ArgumentParser:
@@ -134,7 +135,7 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
 
     # System base power
     dat_content.append("# System base power")
-    dat_content.append("param BASE := 100;\n")
+    dat_content.append(f"param BASE := {BASE_POWER_MVA};\n")
 
     # Process DBAR data (buses)
     if "DBAR" in result and result["DBAR"]:
@@ -181,15 +182,15 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 dger_data = dger_lookup.get(num, dger_lookup.get(str(num), {}))
                 pgm_val = dger_data.get("max_active_generation")
                 pgn_val = dger_data.get("min_active_generation")
-                pgm = float(pgm_val) if pgm_val is not None else 9999.0
-                pgn = float(pgn_val) if pgn_val is not None else -9999.0
+                pgm = float(pgm_val) if pgm_val is not None else INFINITY_VALUE
+                pgn = float(pgn_val) if pgn_val is not None else -INFINITY_VALUE
 
                 # Get reactive power limits from DBAR data
                 # Get reactive power limits from DBAR data
                 qgm_val = bus.get("max_reactive_generation")
                 qgn_val = bus.get("min_reactive_generation")
-                qgm = float(qgm_val) if qgm_val not in [None, ""] else 9999.0
-                qgn = float(qgn_val) if qgn_val not in [None, ""] else -9999.0
+                qgm = float(qgm_val) if qgm_val not in [None, ""] else INFINITY_VALUE
+                qgn = float(qgn_val) if qgn_val not in [None, ""] else -INFINITY_VALUE
 
                 bus_pl = bus.get("active_load")
                 bus_ql = bus.get("reactive_load")
@@ -201,8 +202,8 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                     if bus.get("capacitor_reactor")
                     else 0.0
                 )
-                vmx = 1.100  # Default max voltage
-                vmn = 0.950  # Default min voltage
+                vmx = DEFAULT_VMAX
+                vmn = DEFAULT_VMIN
 
                 line = f'{num:8} "{name:12}" {tb:2} {area:3} {v0:7.3f} {a0:8.2f} {pg0:8.3f} {qg0:8.3f} {pgm:8.2f} {pgn:8.2f} {qgm:10.2f} {qgn:10.2f} {pl:8.3f} {ql:8.3f} {bsh:8.4f} {vmx:7.3f} {vmn:7.3f}'
                 dat_content.append(line)
@@ -213,6 +214,15 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
     if "DLIN" in result and result["DLIN"]:
         lines = result["DLIN"]
 
+        # Create a set of connected bus numbers for quick lookup
+        connected_buses = set()
+        if "DBAR" in result and result["DBAR"]:
+            for bus in result["DBAR"]:
+                if bus.get("state", "L") == "L":  # Only connected buses
+                    bus_num = bus.get("number")
+                    if bus_num:
+                        connected_buses.add(int(bus_num))
+
         dat_content.append("# AC circuits data (LTs and Transfos)")
         dat_content.append(
             "param: DLIN:       Tr         R          X       Bshl     Tap     Tmx     Tmn      Psh        Cn     :="
@@ -221,6 +231,7 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
             "#    k     i     j          [pu]       [pu]       [pu]                           [grau]    [MVA]                     "
         )
 
+        dlin_idx = 1  # Counter for valid DLIN entries
         for idx, line_data in enumerate(lines, 1):
             if line_data.get("state", "L") == "L":  # Only connected lines
                 from_bus = (
@@ -231,6 +242,8 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 to_bus = (
                     int(line_data.get("to_bus", 0)) if line_data.get("to_bus") else 0
                 )
+                # Check if both FROM and TO buses are connected
+            if from_bus in connected_buses and to_bus in connected_buses:
                 r = (
                     float(line_data.get("resistance", 0)) / 100.0
                     if line_data.get("resistance")
@@ -270,19 +283,29 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                     else 0.0
                 )
                 cn = (
-                    float(line_data.get("normal_capacity", 99999.0))
+                    float(line_data.get("normal_capacity", INFINITY_VALUE))
                     if line_data.get("normal_capacity")
                     else 99999.0
                 )
 
-                line_str = f"{idx:6d} {from_bus:5d} {to_bus:5d} {tr:2d} {r:10.7f} {x:10.7f} {bshl:10.7f} {tap:7.4f} {tmx:7.4f} {tmn:7.4f} {psh:8.3f} {cn:8.2f}"
+                line_str = f"{dlin_idx:6d} {from_bus:5d} {to_bus:5d} {tr:2d} {r:10.7f} {x:10.7f} {bshl:10.7f} {tap:7.4f} {tmx:7.4f} {tmn:7.4f} {psh:8.3f} {cn:8.2f}"
                 dat_content.append(line_str)
+                dlin_idx += 1  # Only increment for valid entrie
 
         dat_content.append(";\n")
 
     # Process DCER data (Static Reactive Compensators)
     if "DCER" in result and result["DCER"]:
         dcer_data = result["DCER"]
+
+        # Create a set of connected bus numbers for quick lookup
+        connected_buses = set()
+        if "DBAR" in result and result["DBAR"]:
+            for bus in result["DBAR"]:
+                if bus.get("state", "L") == "L":  # Only connected buses
+                    bus_num = bus.get("number")
+                    if bus_num:
+                        connected_buses.add(int(bus_num))
 
         dat_content.append("# Static reactive compensator (SVC) data")
         dat_content.append(
@@ -292,31 +315,41 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
             "#                                      [MVAr]    [MVAr]        "
         )
 
-        for idx, dcer in enumerate(dcer_data, 1):
-            if dcer.get("state", "L") == "L":  # Only connected devices
+        dcer_idx = 1  # Counter for valid DCER entries
+        for dcer in dcer_data:
+            if dcer.get("state", "L") == "L":
                 bus = int(dcer.get("bus", 0)) if dcer.get("bus") else 0
-                controlled_bus = (
-                    int(dcer.get("controlled_bus", 0))
-                    if dcer.get("controlled_bus")
-                    else 0
-                )
-                slope = float(dcer.get("slope", 0.0)) if dcer.get("slope") else 0.0
-                qmin = (
-                    float(dcer.get("min_reactive_generation", -100.0))
-                    if dcer.get("min_reactive_generation")
-                    else -100.0
-                )
-                qmax = (
-                    float(dcer.get("max_reactive_generation", 100.0))
-                    if dcer.get("max_reactive_generation")
-                    else 100.0
-                )
+                if bus in connected_buses:
+                    controlled_bus = (
+                        int(dcer.get("controlled_bus", 0))
+                        if dcer.get("controlled_bus")
+                        else 0
+                    )
+                    # Given in %
+                    slope = (
+                        float(dcer.get("slope", 0.0)) / 100.0
+                        if dcer.get("slope")
+                        else 0.0
+                    )
+                    qmin = (
+                        float(dcer.get("min_reactive_generation", -INFINITY_VALUE))
+                        if dcer.get("min_reactive_generation")
+                        else -INFINITY_VALUE
+                    )
+                    qmax = (
+                        float(dcer.get("max_reactive_generation", INFINITY_VALUE))
+                        if dcer.get("max_reactive_generation")
+                        else INFINITY_VALUE
+                    )
+                    control_mode = dcer.get("control_mode", "").strip()
+                    if control_mode == "" or control_mode == "I":
+                        ccer = 0
+                    else:
+                        ccer = 1
 
-                # Ccer appears to be control mode related - using 1 for default
-                ccer = 1
-
-                line_str = f"{idx:8d} {bus:9d} {controlled_bus:5d} {slope:10.7f} {qmin:9.2f} {qmax:9.2f} {ccer:4d}"
-                dat_content.append(line_str)
+                    line_str = f"{dcer_idx:8d} {bus:9d} {controlled_bus:5d} {slope:10.7f} {qmin:9.2f} {qmax:9.2f} {ccer:4d}"
+                    dat_content.append(line_str)
+                    dcer_idx += 1
 
         dat_content.append(";\n")
 
@@ -336,17 +369,16 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
             if dcsc.get("state", "L") == "L":  # Only connected devices
                 from_bus = int(dcsc.get("from_bus", 0)) if dcsc.get("from_bus") else 0
                 to_bus = int(dcsc.get("to_bus", 0)) if dcsc.get("to_bus") else 0
-
                 # Convert reactance from % to pu (divide by 100)
                 min_x = (
-                    float(dcsc.get("min_reactance", -9999.0)) / 100.0
+                    float(dcsc.get("min_reactance", 0.0)) / 100.0
                     if dcsc.get("min_reactance")
-                    else -99.99
+                    else -0.0
                 )
                 max_x = (
-                    float(dcsc.get("max_reactance", 9999.0)) / 100.0
+                    float(dcsc.get("max_reactance", 0.0)) / 100.0
                     if dcsc.get("max_reactance")
-                    else 99.99
+                    else 0.0
                 )
                 init_x = (
                     float(dcsc.get("initial_reactance", 0.0)) / 100.0
@@ -354,11 +386,26 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                     else 0.0
                 )
 
-                # Ccsc appears to be control mode related - using 1 for default
-                ccsc = 1
+                # if string == ' ': Ctrlcsc.append(3)
+                # elif string == 'X': Ctrlcsc.append(3)
+                # elif string == 'I': Ctrlcsc.append(2)
+                # elif string == 'P': Ctrlcsc.append(1)
+                control_mode = dcsc.get("control_mode", "").strip()
+                if control_mode == "" or control_mode == "X":
+                    ccsc = 3
+                elif control_mode == "I":
+                    ccsc = 2
+                elif control_mode == "P":
+                    ccsc = 1
+                else:
+                    ccsc = 3  # Default to 3 for unknown values
 
                 # Cnc appears to be capacity - using 99999 as default
-                cnc = 99999.0
+                cnc = (
+                    float(dcsc.get("dcsc_capacity", 0.0))
+                    if dcsc.get("dcsc_capacity")
+                    else 99999.0
+                )
 
                 line_str = f"{idx:5d} {from_bus:5d} {to_bus:5d} {min_x:10.7f} {max_x:10.7f} {ccsc:4d} {init_x:10.7f} {cnc:8.2f}"
                 dat_content.append(line_str)

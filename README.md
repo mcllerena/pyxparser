@@ -2,6 +2,30 @@
 
 A Python parser for ANAREDE electrical power system files.
 
+> [![image](https://img.shields.io/pypi/v/r2x.svg)](https://pypi.python.org/pypi/r2x)
+> [![image](https://img.shields.io/pypi/l/r2x.svg)](https://pypi.python.org/pypi/r2x)
+>[![codecov](https://codecov.io/gh/yourusername/pyxparser/branch/main/graph/badge.svg)](https://codecov.io/gh/mcllerena/pyxparser)
+>[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+>[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://mcllerena.github.io/pyxparser)
+
+## Table of Contents
+
+- [Description](#description)
+- [Features](#features)
+- [Installation](#installation)
+  - [From PyPI (when published)](#from-pypi-when-published)
+  - [From source](#from-source)
+  - [Development installation](#development-installation)
+- [Configuration](#configuration)
+- [Current Support Fields](#current-support-fields)
+- [Setup Development Environment](#setup-development-environment)
+- [CLI Usage](#cli-usage)
+  - [Options](#options)
+  - [Example](#example)
+- [Contributing](#contributing)
+- [License](#license)
+- [References](#references)
+
 ## Description
 
 pyxparser is a Python library designed to parse and process ANAREDE (Análise de Redes Elétricas) files used in electrical power system analysis (Brazil). It provides a simple and efficient way to read, parse, and convert ANAREDE data formats.

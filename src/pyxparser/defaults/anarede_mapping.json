@@ -328,6 +328,14 @@
         "default": "X",
         "description": "P - Constant power. The specified value for active power flow in the circuit is maintained while CSC reactance values remain within limits.\nI - Constant current. The specified value for current magnitude in the circuit is maintained while CSC reactance values remain within limits.\nX - Constant reactance. The CSC does not act and reactance is fixed at the specified value."
       },
+      "dcsc_capacity": {
+        "column": {
+          "end": 64,
+          "start": 60
+        },
+        "default": 9999.0,
+        "description": "CSC nominal capacity, in MVA."
+      },
       "from_bus": {
         "column": {
           "end": 5,

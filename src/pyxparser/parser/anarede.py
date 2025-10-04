@@ -37,8 +37,6 @@ class AnaredeParser:
         Returns:
             Dictionary containing parsed data
         """
-        logger.info(f"Starting to parse ANAREDE file: {file_path}")
-
         try:
             result: Dict[str, Any] = {
                 "TITU": [],
@@ -183,12 +181,9 @@ class AnaredeParser:
                         continue
 
             if result["DBSH"]:
-                # logger.debug("Integrating DBSH shunt values into DBAR data")
                 self._integrate_dbsh_into_dbar(result)
 
-            # Process DSHL data and integrate into DBAR
             if result["DSHL"]:
-                # logger.debug("Integrating DSHL shunt values into DBAR data")
                 self._integrate_dshl_into_dbar(result)
 
             if result["TITU"]:

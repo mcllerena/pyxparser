@@ -209,6 +209,123 @@
     },
     "function": "Reading of individualized capacitor and/or reactor bank data connected to AC buses or transmission lines."
   },
+  "DCAI": {
+    "fields": {
+      "active_power": {
+        "column": {
+          "end": 27,
+          "start": 23
+        },
+        "default": 0.0,
+        "description": "Active power value of the individualized load group, in MW. If the load varies with bus voltage magnitude, enter the load value for the voltage specified in the Voltage for Load Definition field."
+      },
+      "bus": {
+        "column": {
+          "end": 5,
+          "start": 1
+        },
+        "default": "",
+        "description": "Bus identification number, as defined in the Bus field of the DBAR Execution Code, to which this group of individualized loads is connected."
+      },
+      "group": {
+        "column": {
+          "end": 11,
+          "start": 10
+        },
+        "default": 1,
+        "description": "Identification number of the individualized load group. Multiple groups can be connected to one bus and a group can consist of one or more individualized loads."
+      },
+      "operation": {
+        "column": {
+          "end": 7,
+          "start": 7
+        },
+        "default": "A",
+        "description": "A or 0 - addition of individualized load group data.\nE or 1 - elimination of individualized load group data.\nM or 2 - modification of individualized load group data."
+      },
+      "parameter_a": {
+        "column": {
+          "end": 37,
+          "start": 35
+        },
+        "default": 0.0,
+        "description": "Portion of individualized active load that varies linearly with voltage magnitude, in %."
+      },
+      "parameter_b": {
+        "column": {
+          "end": 41,
+          "start": 39
+        },
+        "default": 0.0,
+        "description": "Portion of individualized active load that varies with the square of voltage magnitude, in %."
+      },
+      "parameter_c": {
+        "column": {
+          "end": 45,
+          "start": 43
+        },
+        "default": 0.0,
+        "description": "Portion of individualized reactive load that varies linearly with voltage magnitude, in %."
+      },
+      "parameter_d": {
+        "column": {
+          "end": 49,
+          "start": 47
+        },
+        "default": 0.0,
+        "description": "Portion of individualized reactive load that varies with the square of voltage magnitude, in %."
+      },
+      "reactive_power": {
+        "column": {
+          "end": 33,
+          "start": 29
+        },
+        "default": 0.0,
+        "description": "Reactive power value of the individualized load group, in MVAr. If the load varies with bus voltage magnitude, enter the load value for the voltage specified in the Voltage for Load Definition field."
+      },
+      "state": {
+        "column": {
+          "end": 13,
+          "start": 13
+        },
+        "default": "L",
+        "description": "L if the load group is in operation (connected).\nD if the load group is out of operation (disconnected)."
+      },
+      "total_units": {
+        "column": {
+          "end": 17,
+          "start": 15
+        },
+        "default": 1,
+        "description": "Total number of equal units that compose the individualized load group. This serves as memory of the total number of units or stages in the group."
+      },
+      "units_in_operation": {
+        "column": {
+          "end": 21,
+          "start": 19
+        },
+        "default": 1,
+        "description": "Number of equal units or stages that compose the individualized load group that are effectively in operation."
+      },
+      "voltage_for_load_definition": {
+        "column": {
+          "end": 60,
+          "start": 57
+        },
+        "default": 1.0,
+        "description": "Voltage value in p.u. for which the active and reactive load portions defined in Active Power and Reactive Power fields were measured. Implicit decimal point between columns 57 and 58."
+      },
+      "voltage_limit": {
+        "column": {
+          "end": 55,
+          "start": 51
+        },
+        "default": 0.0,
+        "description": "Voltage value below which the constant power portion of functional individualized loads is modeled as constant impedance, in %."
+      }
+    },
+    "function": "Reading of individualized load parameters. This code allows defining groups of individualized loads connected to buses, where each group can consist of multiple identical units with voltage-dependent characteristics."
+  },
   "DCER": {
     "fields": {
       "bus": {
@@ -583,7 +700,7 @@
           "end": 68,
           "start": 65
         },
-        "default": 9999,
+        "default": 99999.0,
         "description": "Circuit loading capacity under normal conditions for flow monitoring purposes, in MVA."
       },
       "number_of_taps": {

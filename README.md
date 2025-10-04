@@ -108,7 +108,19 @@ uv run pre-commit install
 Parse ANAREDE files from the command line:
 
 ```bash
+pyxparser -i <input_path>/input.pwf -o <output_path>/output.dat -f dat
+```
+
+For output verbosity use:
+
+```bash
 pyxparser -i <input_path>/input.pwf -o <output_path>/output.dat -f dat -v
+```
+
+or
+
+```bash
+pyxparser -i <input_path>/input.pwf -o <output_path>/output.dat -f dat -vv
 ```
 
 ### Options

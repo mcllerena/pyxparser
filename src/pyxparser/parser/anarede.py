@@ -47,6 +47,7 @@ class AnaredeParser:
                 "DCER": [],
                 "DBSH": [],
                 "DSHL": [],
+                "DCAI": [],
                 "metadata": {"file_path": str(file_path), "status": "parsed"},
             }
 
@@ -83,6 +84,7 @@ class AnaredeParser:
                 "DGGB",
                 "DTPF",
                 "DCAR",
+                "DCAI",
                 "DMFL",
                 "DCTR",
                 "DMFL",
@@ -102,6 +104,7 @@ class AnaredeParser:
                 "DCER",
                 "DBSH",
                 "DSHL",
+                "DCAI",
             ]
             unsupported_sections = [
                 s for s in all_sections if s not in supported_sections
@@ -169,6 +172,9 @@ class AnaredeParser:
                         elif current_section == "DSHL":
                             record = self.parse_dshl_record(line)
                             result["DSHL"].append(record)
+                        elif current_section == "DCAI":
+                            record = self.parse_dcai_record(line)
+                            result["DCAI"].append(record)
                         elif current_section in unsupported_sections:
                             continue
                         elif current_section is None:
@@ -186,6 +192,9 @@ class AnaredeParser:
             if result["DSHL"]:
                 self._integrate_dshl_into_dbar(result)
 
+            if result["DCAI"]:
+                self._integrate_dcai_into_dbar(result)
+
             if result["TITU"]:
                 result["metadata"]["title"] = " ".join(result["TITU"])
 
@@ -194,7 +203,7 @@ class AnaredeParser:
                 f"Parsed {len(result['DBAR'])} DBAR, {len(result['DLIN'])} DLIN , "
                 f"{len(result['DGER'])} DGER, {len(result['DCSC'])} DCSC, "
                 f"{len(result['DCER'])} DCER, and {len(result['DBSH'])} DBSH, "
-                f"and {len(result['DSHL'])} DSHL records"
+                f"and {len(result['DSHL'])} DSHL, and {len(result['DCAI'])} DCAI records"
             )
             return result
 
@@ -281,6 +290,90 @@ class AnaredeParser:
                 record[field_name] = field_config.get("default", "")
 
         return record
+
+    def parse_dcai_record(self, line: str) -> Dict[str, Any]:
+        """Parse DCAI (Individualized Load) record.
+
+        Following the original logic:
+        # Bus number (1-5) - NumC
+        # Units in operation (19-21) - UOpC
+        # Active power (23-27) - PCAI
+        # Reactive power (29-33) - QCAI
+        """
+        dcai_record: Dict[str, Any] = {}
+
+        # Bus number (columns 1-5) - NumC
+        bus_str = line[:5].strip()
+        dcai_record["bus"] = int(bus_str) if bus_str else 0
+
+        # Operation (column 7) - not used in original logic but in mapping
+        operation_str = line[6:7].strip()
+        dcai_record["operation"] = operation_str if operation_str else "A"
+
+        # Group (columns 10-11)
+        group_str = line[9:11].strip()
+        dcai_record["group"] = int(group_str) if group_str else 1
+
+        # State (column 13)
+        state_str = line[12:13].strip()
+        dcai_record["state"] = state_str if state_str else "L"
+
+        # Total units (columns 15-17)
+        total_units_str = line[14:17].strip()
+        dcai_record["total_units"] = int(total_units_str) if total_units_str else 1
+
+        # Units in operation (columns 19-21) - UOpC
+        units_in_operation_str = line[18:21].strip()
+        dcai_record["units_in_operation"] = (
+            int(units_in_operation_str) if units_in_operation_str else 0
+        )
+
+        # Active power (columns 23-27) - PCAI
+        active_power_str = line[22:27].strip()
+        if active_power_str and not active_power_str.isspace():
+            dcai_record["active_power"] = float(active_power_str)
+        else:
+            dcai_record["active_power"] = 0.0
+
+        # Reactive power (columns 29-33) - QCAI
+        reactive_power_str = line[28:33].strip()
+        if reactive_power_str and not reactive_power_str.isspace():
+            dcai_record["reactive_power"] = float(reactive_power_str)
+        else:
+            dcai_record["reactive_power"] = 0.0
+
+        # Parameter A (columns 35-37)
+        param_a_str = line[34:37].strip()
+        dcai_record["parameter_a"] = float(param_a_str) if param_a_str else 0.0
+
+        # Parameter B (columns 39-41)
+        param_b_str = line[38:41].strip()
+        dcai_record["parameter_b"] = float(param_b_str) if param_b_str else 0.0
+
+        # Parameter C (columns 43-45)
+        param_c_str = line[42:45].strip()
+        dcai_record["parameter_c"] = float(param_c_str) if param_c_str else 0.0
+
+        # Parameter D (columns 47-49)
+        param_d_str = line[46:49].strip()
+        dcai_record["parameter_d"] = float(param_d_str) if param_d_str else 0.0
+
+        # Voltage limit (columns 51-55)
+        voltage_limit_str = line[50:55].strip()
+        dcai_record["voltage_limit"] = (
+            float(voltage_limit_str) if voltage_limit_str else 0.0
+        )
+
+        # Voltage for load definition (columns 57-60)
+        voltage_def_str = line[56:60].strip()
+        if voltage_def_str:
+            # Implicit decimal point between columns 57 and 58
+            voltage_def_value = float(voltage_def_str) / 1000.0  # Convert to p.u.
+            dcai_record["voltage_for_load_definition"] = voltage_def_value
+        else:
+            dcai_record["voltage_for_load_definition"] = 1.0
+
+        return dcai_record
 
     def parse_dger_record(self, line: str) -> Dict[str, Any]:
         """Parse a DGER (generator) record.
@@ -755,6 +848,73 @@ class AnaredeParser:
                     logger.warning(f"* Error in bus TO {Pashl_s} of SHL {s}.")
 
         logger.info(f"Integrated {nshl} DSHL records into DBAR records")
+
+    def _integrate_dcai_into_dbar(self, result: Dict[str, Any]) -> None:
+        """Integrate DCAI load values into DBAR bus data."""
+        nc = len(result["DCAI"])  # Number of DCAI records
+        nb = len(result["DBAR"])  # Number of DBAR (bus) records
+
+        # Process each DCAI record (c loop: for c in range(1, nc + 1))
+        for c in range(1, nc + 1):
+            dcai_record = result["DCAI"][c - 1]  # Convert to 0-based index
+
+            # Only process connected loads
+            if dcai_record.get("state", "L") != "L":
+                continue
+
+            # Extract values from DCAI record
+            NumC_c = dcai_record.get("bus")  # NumC[c-1]
+            UOpC_c = dcai_record.get("units_in_operation", 0)  # UOpC[c-1]
+            PCAI_c = dcai_record.get("active_power", 0.0)  # PCAI[c-1]
+            QCAI_c = dcai_record.get("reactive_power", 0.0)  # QCAI[c-1]
+
+            # Find matching bus in DBAR (k loop: for k in range(1, nb + 1))
+            bus_found = False
+
+            for k in range(1, nb + 1):
+                dbar_record = result["DBAR"][k - 1]  # Convert to 0-based index
+                Num_k = dbar_record.get("number")  # Num[k-1]
+
+                if Num_k and int(Num_k) == NumC_c:  # if Num[k-1] == NumC[c-1]
+                    bus_found = True
+
+                    # Get current load values
+                    current_active_load = result["DBAR"][k - 1].get("active_load", 0.0)
+                    current_reactive_load = result["DBAR"][k - 1].get(
+                        "reactive_load", 0.0
+                    )
+
+                    # Handle string values and convert to float
+                    if isinstance(current_active_load, str):
+                        try:
+                            current_active_load = float(current_active_load)
+                        except ValueError:
+                            current_active_load = 0.0
+
+                    if isinstance(current_reactive_load, str):
+                        try:
+                            current_reactive_load = float(current_reactive_load)
+                        except ValueError:
+                            current_reactive_load = 0.0
+
+                    # Add individualized loads: Pl[k-1] = Pl[k-1] + UOpC[c-1] * PCAI[c-1]
+                    new_active_load = current_active_load + UOpC_c * PCAI_c
+                    new_reactive_load = current_reactive_load + UOpC_c * QCAI_c
+
+                    result["DBAR"][k - 1]["active_load"] = new_active_load
+                    result["DBAR"][k - 1]["reactive_load"] = new_reactive_load
+
+                    # logger.debug(
+                    #     f"CAI {c}: Added load {UOpC_c * PCAI_c:.3f} MW + j{UOpC_c * QCAI_c:.3f} MVAr "
+                    #     f"to bus {NumC_c} (DBAR index {k}), "
+                    #     f"total: {new_active_load:.3f} MW + j{new_reactive_load:.3f} MVAr"
+                    # )
+                    break
+
+            if not bus_found:
+                logger.warning(f"* Error in initial bus {NumC_c} of CAI {c}.")
+
+        logger.info(f"Integrated {nc} DCAI records into DBAR data")
 
     def _extract_field_value(
         self, line: str, start: int, end: int, data_type: Type[Union[str, int, float]]

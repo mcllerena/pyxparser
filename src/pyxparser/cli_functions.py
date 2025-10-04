@@ -151,10 +151,10 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
 
         dat_content.append("# Bus data")
         dat_content.append(
-            "param: DBAR:       Name Tb   Are    V0      A0      Pg0      Qg0       Pgm      Pgn        Qgm        Qgn       Pl       Ql      Bsh     Vmx     Vmn    :="
+            "param: DBAR:       Name Tb   Are    V0      A0        Pg0      Qg0       Pgm        Pgn        Qgm        Qgn         Pl         Ql        Bsh       Vmx       Vmn    :="
         )
         dat_content.append(
-            "#                                 [pu]  [grau]     [MW]   [MVAr]      [MW]     [MW]     [MVAr]     [MVAr]     [MW]   [MVAr]     [pu]    [pu]    [pu]      "
+            "#                                 [pu]  [grau]       [MW]   [MVAr]      [MW]       [MW]     [MVAr]     [MVAr]       [MW]     [MVAr]       [pu]      [pu]      [pu]      "
         )
 
         for bus in buses:
@@ -205,7 +205,7 @@ def _format_dat_file(result: Dict[str, Any]) -> str:
                 vmx = DEFAULT_VMAX
                 vmn = DEFAULT_VMIN
 
-                line = f'{num:8} "{name:12}" {tb:2} {area:3} {v0:7.3f} {a0:8.2f} {pg0:8.3f} {qg0:8.3f} {pgm:8.2f} {pgn:8.2f} {qgm:10.2f} {qgn:10.2f} {pl:8.3f} {ql:8.3f} {bsh:8.4f} {vmx:7.3f} {vmn:7.3f}'
+                line = f'{num:8} "{name:12}" {tb:2} {area:3} {v0:7.3f} {a0:8.2f} {pg0:10.3f} {qg0:8.3f} {pgm:8.2f} {pgn:10.2f} {qgm:10.2f} {qgn:10.2f} {pl:10.3f} {ql:10.3f} {bsh:10.4f} {vmx:9.3f} {vmn:9.3f}'
                 dat_content.append(line)
 
         dat_content.append(";\n")

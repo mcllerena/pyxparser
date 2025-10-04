@@ -113,6 +113,7 @@ class AnaredeParser:
             with open(file_path, "r", encoding="utf-8") as f:
                 current_section = None
                 titu_read = False
+                nca = 0  # Counter for artificial buses
 
                 for line_num, line in enumerate(f, 1):
                     line = line.rstrip("\n\r")
@@ -155,8 +156,14 @@ class AnaredeParser:
                             record = self.parse_dbar_record(line)
                             result["DBAR"].append(record)
                         elif current_section == "DLIN":
-                            record = self.parse_dlin_record(line)
+                            record, artificial_buses = (
+                                self.parse_dlin_record_with_artificial_buses(line, nca)
+                            )
                             result["DLIN"].append(record)
+                            # Add any artificial buses created
+                            if artificial_buses:
+                                result["DBAR"].extend(artificial_buses)
+                                nca += len(artificial_buses)
                         elif current_section == "DGER":
                             record = self.parse_dger_record(line)
                             result["DGER"].append(record)
@@ -290,6 +297,105 @@ class AnaredeParser:
                 record[field_name] = field_config.get("default", "")
 
         return record
+
+    def parse_dlin_record_with_artificial_buses(
+        self, line: str, nca: int
+    ) -> tuple[Dict[str, Any], List[Dict[str, Any]]]:
+        """Parse a DLIN (line) record and create artificial buses if needed.
+
+        Args:
+            line: Line containing DLIN data
+            nca: Current artificial bus counter
+
+        Returns:
+            Tuple of (dlin_record, list_of_artificial_buses)
+        """
+        if len(line) < 20:
+            raise ValueError(f"DLIN line too short: {line}")
+
+        # Parse the basic DLIN record first
+        record = self.parse_dlin_record(line)
+        artificial_buses = []
+
+        # Get bus states from the parsed record
+        from_bus = record.get("from_bus")
+        to_bus = record.get("to_bus")
+        line_state = record.get("state", "L")  # El (line state)
+        from_bus_state = record.get(
+            "from_bus_opening", "L"
+        )  # dDe (FROM bus opening state)
+        to_bus_state = record.get("to_bus_opening", "L")  # dPa (TO bus opening state)
+
+        # Handle special cases for disconnected buses
+        # Case 1: Line is 'D', FROM bus is 'D', TO bus is 'L'
+        if line_state == "D" and from_bus_state == "D" and to_bus_state == "L":
+            # Change line state to connected
+            record["state"] = "L"
+
+            # Create artificial negative bus to replace FROM bus
+            artificial_bus_num = -(nca + 1)
+            record["from_bus"] = artificial_bus_num
+
+            # Create the artificial bus record
+            artificial_bus = self._create_artificial_bus(artificial_bus_num)
+            artificial_buses.append(artificial_bus)
+
+            logger.debug(
+                f"Created artificial bus {artificial_bus_num} for disconnected FROM bus {from_bus}"
+            )
+
+        # Case 2: Line is 'D', FROM bus is 'L', TO bus is 'D'
+        elif line_state == "D" and from_bus_state == "L" and to_bus_state == "D":
+            # Change line state to connected
+            record["state"] = "L"
+
+            # Create artificial negative bus to replace TO bus
+            artificial_bus_num = -(nca + 1)
+            record["to_bus"] = artificial_bus_num
+
+            # Create the artificial bus record
+            artificial_bus = self._create_artificial_bus(artificial_bus_num)
+            artificial_buses.append(artificial_bus)
+
+            logger.debug(
+                f"Created artificial bus {artificial_bus_num} for disconnected TO bus {to_bus}"
+            )
+
+        return record, artificial_buses
+
+    def _create_artificial_bus(self, bus_number: int) -> Dict[str, Any]:
+        """Create an artificial bus record with default values.
+
+        Args:
+            bus_number: Negative bus number for the artificial bus
+
+        Returns:
+            Dictionary with artificial bus data
+        """
+        return {
+            "number": bus_number,
+            "name": "            ",  # 12 spaces as in original
+            "type": 0,  # Tb
+            "state": "L",  # Eb
+            "group": 0,  # Gl
+            "area": 0,  # Are
+            "voltage": 1.0,  # V
+            "angle": 0.0,  # A
+            "active_load": 0.0,  # Pl
+            "reactive_load": 0.0,  # Ql
+            "active_generation": 0.0,  # Pg
+            "reactive_generation": 0.0,  # Qg
+            "voltage_setpoint": 0.0,  # Vesp
+            "max_reactive_generation": 0.0,  # Qm
+            "min_reactive_generation": 0.0,  # Qn
+            "capacitor_reactor": 0.0,  # Sh
+            "bus_control": 0,  # Kb
+            "slope": 0.0,  # Incl
+            "control_mode": 0,  # Ctrl
+            "base_voltage": 1.0,
+            "voltage_maximum": 1.1,
+            "voltage_minimum": 0.9,
+        }
 
     def parse_dcai_record(self, line: str) -> Dict[str, Any]:
         """Parse DCAI (Individualized Load) record.

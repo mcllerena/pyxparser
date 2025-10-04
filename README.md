@@ -76,6 +76,7 @@ See `src/pyxparser/defaults/anarede_mapping.json` for the default ANAREDE format
 | **DCER** | SVC** data | ✅ Supported |
 | **DBSH** | Bus Capacitor/reactor*** banks data | ✅ Supported |
 | **DSHL** | AC Circuit shunt data | ✅ Supported |
+| **DCAI** | Individualized load data**** | 🟡 Partially |
 | **DELO** | DC Link nominal data | 🔄 Planned |
 | **DCBA** | DC Bus data | 🔄 Planned |
 | **DCLI** | DC Line data | 🔄 Planned |
@@ -87,6 +88,33 @@ See `src/pyxparser/defaults/anarede_mapping.json` for the default ANAREDE format
 **SVC: Static VAR Compensator
 
 ***Capacitor/Reactor Banks: For groups or banks of individualized capacitors and/or reactors connected to the same bus, the settings for minimum and maximum voltage control range, controlled bus, and voltage control strategy must always be identical. Different settings for banks connected to the same bus would cause conflicts between voltage adjustment controls and are therefore not permitted. In this regard, individualized capacitor/reactor banks connected to a transmission line are considered to be connected to the bus corresponding to the line terminal where they are installed [1].
+
+****DCAI: For each individualized load group, parameters A, B, C, and D are read to establish the load variation curve with respect to voltage magnitude at the respective bus. Loads of this type are modeled by ZIP load characteristics:
+
+**Active Power Load:**
+
+$$P_{load} = \begin{cases}
+\left(100-A-B + A \cdot \frac{V}{V_{def}} + B \cdot \frac{V^2}{V_{def}^2}\right) \cdot \frac{P}{100} & \text{if } V \geq V_{fld} \\
+\left((100-A-B) \cdot \frac{V^2}{V_{fld}^2} + A \cdot \frac{V^2}{V_{def} \cdot V_{fld}} + B \cdot \frac{V^2}{V_{def}^2}\right) \cdot \frac{P}{100} & \text{if } V < V_{fld}
+\end{cases}$$
+
+**Reactive Power Load:**
+
+$$Q_{load} = \begin{cases}
+\left(100-C-D + C \cdot \frac{V}{V_{def}} + D \cdot \frac{V^2}{V_{def}^2}\right) \cdot \frac{Q}{100} & \text{if } V \geq V_{fld} \\
+\left((100-C-D) \cdot \frac{V^2}{V_{fld}^2} + C \cdot \frac{V^2}{V_{def} \cdot V_{fld}} + D \cdot \frac{V^2}{V_{def}^2}\right) \cdot \frac{Q}{100} & \text{if } V < V_{fld}
+\end{cases}$$
+
+**Where:**
+- **A, C**: Parameters defining load portions represented by constant current (% of total load)
+- **B, D**: Parameters defining load portions represented by constant impedance (% of total load)
+- **$(100-A-B)$, $(100-C-D)$**: Constant power portions (% of total load)
+- **P, Q**: Active and reactive loads at reference voltage $V_{def}$ (MW, MVAr)
+- **$V_{fld}$**: Voltage threshold below which constant power and constant current portions are modeled as constant impedance (p.u.)
+- **$V_{def}$**: Reference voltage for which load values P and Q were measured (p.u.)
+- **V**: Actual bus voltage (p.u.)
+
+**Note**: The ZIP load modeling with voltage-dependent parameters A, B, C, D is parsed but not yet implemented in the power flow calculations. Currently, only the base load values (P, Q) and units in operation are integrated into the bus load data.
 
 ### Setup Development Environment
 

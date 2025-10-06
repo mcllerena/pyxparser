@@ -19,7 +19,9 @@ A Python parser for ANAREDE electrical power system files.
 - [Configuration](#configuration)
 - [Current Support Fields](#current-support-fields)
 - [Setup Development Environment](#setup-development-environment)
-- [CLI Usage](#cli-usage)
+- [Usage](#usage)
+  - [Python API](#python-api)
+  - [CLI Usage](#cli-usage)
   - [Options](#options)
   - [Example](#example)
 - [Contributing](#contributing)
@@ -131,7 +133,39 @@ uv sync --dev
 uv run pre-commit install
 ```
 
-## CLI Usage
+## Usage
+
+### Python API
+
+```python
+from pyxparser.parser import AnaredeParser
+from pathlib import Path
+
+# Create parser instance (no file path in constructor)
+parser = AnaredeParser()
+
+# Parse the file using the parse_file method
+file_path = Path("tests/data/9bus/9barras2.pwf")
+result = parser.parse_file(file_path)
+
+# Now you can access the parsed data
+print(f"Title: {result.get('metadata', {}).get('title', 'No title')}")
+print(f"Number of buses: {len(result.get('DBAR', []))}")
+print(f"Number of lines: {len(result.get('DLIN', []))}")
+print(f"Number of generators: {len(result.get('DGER', []))}")
+
+# Access specific data
+buses = result.get('DBAR', [])
+lines = result.get('DLIN', [])
+generators = result.get('DGER', [])
+
+# Example: Print first bus data
+if buses:
+    first_bus = buses[0]
+    print(f"First bus: {first_bus}")
+```
+
+### CLI Usage
 
 Parse ANAREDE files from the command line:
 

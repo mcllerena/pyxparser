@@ -1,3 +1,9 @@
+[tool.hatch.version]
+path = "src/pyxparser/__version__.py"
+
+[tool.hatch.metadata]
+allow-direct-references=true
+
 [project]
 name = "pyxparser"
 authors = [
@@ -6,7 +12,7 @@ authors = [
 dynamic = ["version"]
 description = "ANAREDE parser"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "loguru>=0.7.0"
 ]
